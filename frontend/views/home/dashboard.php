@@ -111,7 +111,7 @@ if ($_SESSION['role_id'] == 1) {
                             <p id="progressPercentage" class="text-2xl manrope-bold text-gray-800">0%</p>
                         </div>
                     </div>
-                    <p class="text-sm text-gray-600 mt-2">Completion rate based on verified documents</p>
+                    <p class="text-sm text-gray-600 mt-2">Completion rate based on verified vs total required documents</p>
                 </div>
 
             <!-- Organization Status -->
@@ -131,16 +131,31 @@ if ($_SESSION['role_id'] == 1) {
 
         async function loadDashboardData() {
             try {
-                const response = await fetch('/Org-Accreditation-System/backend/api/organization_api.php', {
+                // Fetch organization data
+                const orgResponse = await fetch('/Org-Accreditation-System/backend/api/organization_api.php', {
                     method: 'GET'
                 });
 
-                if (!response.ok) throw new Error('Network error');
-                const result = await response.json();
+                if (!orgResponse.ok) throw new Error('Network error');
+                const orgResult = await orgResponse.json();
 
-                if (result.status === 'success' && result.data) {
+                // Fetch requirements data to get total count
+                const reqResponse = await fetch('/Org-Accreditation-System/backend/api/requirement_api.php', {
+                    method: 'GET'
+                });
+
+                let totalRequirements = 0;
+                if (reqResponse.ok) {
+                    const reqResult = await reqResponse.json();
+                    if (reqResult.status === 'success' && reqResult.data) {
+                        // Count only active requirements
+                        totalRequirements = reqResult.data.filter(req => req.is_active == 1).length;
+                    }
+                }
+
+                if (orgResult.status === 'success' && orgResult.data) {
                     // Find the current user's organization
-                    const organizations = result.data;
+                    const organizations = orgResult.data;
                     const userOrg = organizations.find(org => org.org_id == <?php echo $_SESSION['org_id'] ?? 0; ?>);
 
                     if (userOrg) {
@@ -148,7 +163,9 @@ if ($_SESSION['role_id'] == 1) {
                         const verified = parseInt(userOrg.verified_documents) || 0;
                         const pending = parseInt(userOrg.pending_documents) || 0;
                         const returned = parseInt(userOrg.returned_documents) || 0;
-                        const completion = total > 0 ? Math.round((verified / total) * 100) : 0;
+                        
+                        // Calculate completion based on verified documents out of total required documents
+                        const completion = totalRequirements > 0 ? Math.round((verified / totalRequirements) * 100) : 0;
 
                         document.getElementById('totalDocuments').textContent = total;
                         document.getElementById('verifiedDocuments').textContent = verified;

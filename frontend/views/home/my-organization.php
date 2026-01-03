@@ -121,22 +121,22 @@ if ($_SESSION['role_id'] == 1) {
                     <!-- Document Statistics -->
                     <div class="border-t border-gray-200 pt-6">
                         <h3 class="text-lg manrope-bold text-gray-800 mb-5">Document Statistics</h3>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div class="text-center p-5 bg-gray-50 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
                                 <p class="text-sm text-gray-600 mb-2">Total Documents</p>
-                                <p id="totalDocs" class="text-4xl manrope-bold text-gray-800">-</p>
+                                <p id="totalDocs" class="text-3xl manrope-bold text-gray-800">-</p>
                             </div>
                             <div class="text-center p-5 bg-green-50 rounded-lg border border-green-200 hover:shadow-md transition-shadow">
                                 <p class="text-sm text-gray-600 mb-2">Verified</p>
-                                <p id="verifiedDocs" class="text-4xl manrope-bold text-green-600">-</p>
+                                <p id="verifiedDocs" class="text-3xl manrope-bold text-green-600">-</p>
                             </div>
                             <div class="text-center p-5 bg-yellow-50 rounded-lg border border-yellow-200 hover:shadow-md transition-shadow">
                                 <p class="text-sm text-gray-600 mb-2">Pending</p>
-                                <p id="pendingDocs" class="text-4xl manrope-bold text-yellow-600">-</p>
+                                <p id="pendingDocs" class="text-3xl manrope-bold text-yellow-600">-</p>
                             </div>
                             <div class="text-center p-5 bg-red-50 rounded-lg border border-red-200 hover:shadow-md transition-shadow">
                                 <p class="text-sm text-gray-600 mb-2">Returned</p>
-                                <p id="returnedDocs" class="text-4xl manrope-bold text-red-600">-</p>
+                                <p id="returnedDocs" class="text-3xl manrope-bold text-red-600">-</p>
                             </div>
                         </div>
                     </div>
