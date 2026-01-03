@@ -41,7 +41,14 @@ if (!$canView) {
     exit;
 }
 
-$file_path = $_SERVER['DOCUMENT_ROOT'] . $document['file_path'];
+// Validate file path to prevent directory traversal
+$file_path = $document['file_path'];
+if (strpos($file_path, '..') !== false || strpos($file_path, '/Org-Accreditation-System/uploads/documents/') !== 0) {
+    echo "Invalid file path";
+    exit;
+}
+
+$full_file_path = $_SERVER['DOCUMENT_ROOT'] . $file_path;
 $file_extension = strtolower(pathinfo($document['file_name'], PATHINFO_EXTENSION));
 ?>
 <!DOCTYPE html>

@@ -119,7 +119,7 @@ if ($_SESSION['role_id'] == 1) {
                                         </div>
                                         <p class="text-sm text-gray-600 mb-4">${escapeHtml(req.description || 'No description provided')}</p>
                                     </div>
-                                    <button onclick="uploadDocument(${req.requirement_id}, '${escapeHtml(req.requirement_name)}')" 
+                                    <button onclick="uploadDocument(${parseInt(req.requirement_id)}, '${escapeHtml(req.requirement_name)}')" 
                                             class="ml-4 bg-[#940505] text-white px-6 py-2 rounded-md hover:bg-white hover:text-[#940505] border border-transparent hover:border-[#940505] transition-colors whitespace-nowrap flex items-center gap-2">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
@@ -143,7 +143,7 @@ if ($_SESSION['role_id'] == 1) {
 
         async function loadSubmittedDocuments() {
             const tbody = document.getElementById('documentsTableBody');
-            const orgId = <?php echo $_SESSION['org_id']; ?>;
+            const orgId = <?php echo intval($_SESSION['org_id']); ?>;
 
             try {
                 const response = await fetch(`/Org-Accreditation-System/backend/api/document_api.php?org_id=${orgId}`, {
@@ -203,7 +203,7 @@ if ($_SESSION['role_id'] == 1) {
                                         })}
                                     </td>
                                     <td class="px-6 py-4 text-center">
-                                        <button onclick="viewDocument(${doc.document_id})" 
+                                        <button onclick="viewDocument(${parseInt(doc.document_id)})" 
                                                 class="text-[#940505] hover:text-white hover:bg-[#940505] px-4 py-2 rounded-md border border-[#940505] transition-colors">
                                             View
                                         </button>
@@ -247,10 +247,12 @@ if ($_SESSION['role_id'] == 1) {
                 formData.append('file', file);
                 formData.append('requirement_id', requirementId);
 
-                const uploadBtn = event.target;
-                const originalText = uploadBtn.innerHTML;
-                uploadBtn.disabled = true;
-                uploadBtn.innerHTML = '<span>Uploading...</span>';
+                // Show loading state
+                const container = document.getElementById('requirementsContainer');
+                const uploadStatus = document.createElement('div');
+                uploadStatus.className = 'fixed top-20 right-4 bg-blue-500 text-white px-6 py-3 rounded-md shadow-lg';
+                uploadStatus.textContent = 'Uploading...';
+                document.body.appendChild(uploadStatus);
 
                 try {
                     const response = await fetch('/Org-Accreditation-System/backend/api/document_upload_api.php', {
@@ -260,17 +262,19 @@ if ($_SESSION['role_id'] == 1) {
                     
                     const result = await response.json();
                     if (result.status === 'success') {
-                        alert('Document uploaded successfully!');
+                        uploadStatus.className = 'fixed top-20 right-4 bg-green-500 text-white px-6 py-3 rounded-md shadow-lg';
+                        uploadStatus.textContent = 'Document uploaded successfully!';
                         loadSubmittedDocuments();
                     } else {
-                        alert('Upload failed: ' + result.message);
+                        uploadStatus.className = 'fixed top-20 right-4 bg-red-500 text-white px-6 py-3 rounded-md shadow-lg';
+                        uploadStatus.textContent = 'Upload failed: ' + result.message;
                     }
                 } catch (error) {
                     console.error('Upload error:', error);
-                    alert('Upload failed. Please try again.');
+                    uploadStatus.className = 'fixed top-20 right-4 bg-red-500 text-white px-6 py-3 rounded-md shadow-lg';
+                    uploadStatus.textContent = 'Upload failed. Please try again.';
                 } finally {
-                    uploadBtn.disabled = false;
-                    uploadBtn.innerHTML = originalText;
+                    setTimeout(() => uploadStatus.remove(), 3000);
                 }
             };
 
