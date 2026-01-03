@@ -86,19 +86,37 @@ if ($_SESSION['role_id'] == 1) {
             loadSubmittedDocuments();
         });
 
+        let submittedRequirements = new Map(); // Track submitted requirements with their status
+
         async function loadRequirements() {
             const container = document.getElementById('requirementsContainer');
+            const orgId = <?php echo intval($_SESSION['org_id']); ?>;
 
             try {
-                const response = await fetch('/Org-Accreditation-System/backend/api/requirement_api.php', {
-                    method: 'GET'
-                });
+                // Fetch both requirements and submitted documents
+                const [reqResponse, docResponse] = await Promise.all([
+                    fetch('/Org-Accreditation-System/backend/api/requirement_api.php'),
+                    fetch(`/Org-Accreditation-System/backend/api/document_api.php?org_id=${orgId}`)
+                ]);
 
-                if (!response.ok) throw new Error('Network error');
-                const result = await response.json();
+                if (!reqResponse.ok || !docResponse.ok) throw new Error('Network error');
+                
+                const reqResult = await reqResponse.json();
+                const docResult = await docResponse.json();
 
-                if (result.status === 'success' && result.data) {
-                    const requirements = result.data.filter(req => req.is_active == 1);
+                if (reqResult.status === 'success' && reqResult.data) {
+                    const requirements = reqResult.data.filter(req => req.is_active == 1);
+                    const documents = docResult.status === 'success' ? docResult.data : [];
+                    
+                    // Build a map of requirement_id to document status
+                    submittedRequirements.clear();
+                    documents.forEach(doc => {
+                        // Only track if not yet in map or if current doc is more recent
+                        if (!submittedRequirements.has(doc.requirement_id) || 
+                            doc.submitted_at > submittedRequirements.get(doc.requirement_id).submitted_at) {
+                            submittedRequirements.set(doc.requirement_id, doc);
+                        }
+                    });
 
                     if (requirements.length === 0) {
                         container.innerHTML = `
@@ -107,7 +125,53 @@ if ($_SESSION['role_id'] == 1) {
                             </div>
                         `;
                     } else {
-                        container.innerHTML = requirements.map(req => `
+                        container.innerHTML = requirements.map(req => {
+                            const submittedDoc = submittedRequirements.get(req.requirement_id);
+                            const isSubmitted = !!submittedDoc;
+                            const isPending = isSubmitted && submittedDoc.status === 'pending';
+                            const isVerified = isSubmitted && submittedDoc.status === 'verified';
+                            const isReturned = isSubmitted && submittedDoc.status === 'returned';
+                            
+                            let statusBadge = '';
+                            let uploadButton = '';
+                            
+                            if (isVerified) {
+                                statusBadge = '<span class="bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full">✓ Verified</span>';
+                                uploadButton = `<button disabled class="ml-4 bg-gray-300 text-gray-600 px-6 py-2 rounded-md cursor-not-allowed whitespace-nowrap flex items-center gap-2" title="Already verified">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Verified
+                                </button>`;
+                            } else if (isPending) {
+                                statusBadge = '<span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full">⏳ Under Review</span>';
+                                uploadButton = `<button disabled class="ml-4 bg-gray-300 text-gray-600 px-6 py-2 rounded-md cursor-not-allowed whitespace-nowrap flex items-center gap-2" title="Document is pending review">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Pending
+                                </button>`;
+                            } else if (isReturned) {
+                                statusBadge = '<span class="bg-red-100 text-red-800 text-xs font-semibold px-3 py-1 rounded-full">↩ Returned</span>';
+                                uploadButton = `<button onclick="uploadDocument(${parseInt(req.requirement_id)}, '${escapeHtml(req.requirement_name)}')" 
+                                    class="ml-4 bg-orange-600 text-white px-6 py-2 rounded-md hover:bg-white hover:text-orange-600 border border-transparent hover:border-orange-600 transition-colors whitespace-nowrap flex items-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                                    </svg>
+                                    Re-upload
+                                </button>`;
+                            } else {
+                                statusBadge = '<span class="bg-gray-100 text-gray-600 text-xs font-semibold px-3 py-1 rounded-full">Not Submitted</span>';
+                                uploadButton = `<button onclick="uploadDocument(${parseInt(req.requirement_id)}, '${escapeHtml(req.requirement_name)}')" 
+                                    class="ml-4 bg-[#940505] text-white px-6 py-2 rounded-md hover:bg-white hover:text-[#940505] border border-transparent hover:border-[#940505] transition-colors whitespace-nowrap flex items-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                    </svg>
+                                    Upload
+                                </button>`;
+                            }
+                            
+                            return `
                             <div class="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow duration-200">
                                 <div class="flex justify-between items-start">
                                     <div class="flex-1">
@@ -116,19 +180,18 @@ if ($_SESSION['role_id'] == 1) {
                                             <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full">
                                                 ${escapeHtml(req.requirement_type)}
                                             </span>
+                                            ${statusBadge}
                                         </div>
-                                        <p class="text-sm text-gray-600 mb-4">${escapeHtml(req.description || 'No description provided')}</p>
+                                        <p class="text-sm text-gray-600 mb-2">${escapeHtml(req.description || 'No description provided')}</p>
+                                        ${isReturned ? `<div class="mt-2 p-3 bg-red-50 border-l-4 border-red-500 rounded">
+                                            <p class="text-sm text-red-700"><strong>Remarks:</strong> ${escapeHtml(submittedDoc.remarks || 'No remarks provided')}</p>
+                                        </div>` : ''}
                                     </div>
-                                    <button onclick="uploadDocument(${parseInt(req.requirement_id)}, '${escapeHtml(req.requirement_name)}')" 
-                                            class="ml-4 bg-[#940505] text-white px-6 py-2 rounded-md hover:bg-white hover:text-[#940505] border border-transparent hover:border-[#940505] transition-colors whitespace-nowrap flex items-center gap-2">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                                        </svg>
-                                        Upload
-                                    </button>
+                                    ${uploadButton}
                                 </div>
                             </div>
-                        `).join('');
+                        `;
+                        }).join('');
                     }
                 }
             } catch (error) {
@@ -264,6 +327,7 @@ if ($_SESSION['role_id'] == 1) {
                     if (result.status === 'success') {
                         uploadStatus.className = 'fixed top-20 right-4 bg-green-500 text-white px-6 py-3 rounded-md shadow-lg';
                         uploadStatus.textContent = 'Document uploaded successfully!';
+                        loadRequirements(); // Reload requirements to update status
                         loadSubmittedDocuments();
                     } else {
                         uploadStatus.className = 'fixed top-20 right-4 bg-red-500 text-white px-6 py-3 rounded-md shadow-lg';
