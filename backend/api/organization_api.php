@@ -56,11 +56,20 @@ switch ($method) {
                 
                 $created_by = $_SESSION['user_id'] ?? 1;
                 
-                $org_id = $organization->createOrganization($data->new_org_name, $created_by);
+                // Start transaction
+                $db->beginTransaction();
                 
-                if ($org_id) {
-                    $query = "INSERT INTO users (first_name, last_name, email, password, role_id, org_id, temp_password, status, created_at) 
-                              VALUES (:first_name, :last_name, :email, :password, 2, :org_id, :temp_password, 'active', NOW())";
+                try {
+                    // Create organization
+                    $org_id = $organization->createOrganization($data->new_org_name, $created_by);
+                    
+                    if (!$org_id) {
+                        throw new Exception("Failed to create organization");
+                    }
+                    
+                    // Create president account with must_change_password = 1
+                    $query = "INSERT INTO users (first_name, last_name, email, password, role_id, org_id, temp_password, must_change_password, status, created_at) 
+                              VALUES (:first_name, :last_name, :email, :password, 2, :org_id, :temp_password, 1, 'active', NOW())";
                     
                     $stmt = $db->prepare($query);
                     $stmt->bindParam(':first_name', $data->first_name);
@@ -70,22 +79,27 @@ switch ($method) {
                     $stmt->bindParam(':org_id', $org_id);
                     $stmt->bindParam(':temp_password', $temp_password);
                     
-                    if ($stmt->execute()) {
-                        $user_id = $db->lastInsertId();
-                        $organization->updatePresident($org_id, $user_id);
-                        
-                        echo json_encode([
-                            "status" => "success", 
-                            "message" => "Organization and President Account Created", 
-                            "temp_password" => $temp_password,
-                            "org_id" => $org_id,
-                            "user_id" => $user_id
-                        ]);
-                    } else {
-                        echo json_encode(["status" => "error", "message" => "Failed to create president account"]);
+                    if (!$stmt->execute()) {
+                        throw new Exception("Failed to create president account");
                     }
-                } else {
-                    echo json_encode(["status" => "error", "message" => "Failed to create organization"]);
+                    
+                    $user_id = $db->lastInsertId();
+                    
+                    // Update organization with president_id
+                    $organization->updatePresident($org_id, $user_id);
+                    
+                    $db->commit();
+                    
+                    echo json_encode([
+                        "status" => "success", 
+                        "message" => "Organization and President Account Created", 
+                        "temp_password" => $temp_password,
+                        "org_id" => $org_id,
+                        "user_id" => $user_id
+                    ]);
+                } catch (Exception $e) {
+                    $db->rollBack();
+                    echo json_encode(["status" => "error", "message" => $e->getMessage()]);
                 }
             } else {
                 echo json_encode(["status" => "error", "message" => "Incomplete Data"]);
@@ -96,20 +110,39 @@ switch ($method) {
                 $temp_password = 'TMP_' . bin2hex(random_bytes(8));
                 $hashed_password = password_hash($temp_password, PASSWORD_BCRYPT);
                 
-                $query = "INSERT INTO users (first_name, last_name, email, password, role_id, org_id, temp_password, status, created_at) 
-                          VALUES (:first_name, :last_name, :email, :password, 2, :org_id, :temp_password, 'active', NOW())";
+                // Start transaction
+                $db->beginTransaction();
                 
-                $stmt = $db->prepare($query);
-                $stmt->bindParam(':first_name', $data->first_name);
-                $stmt->bindParam(':last_name', $data->last_name);
-                $stmt->bindParam(':email', $data->email);
-                $stmt->bindParam(':password', $hashed_password);
-                $stmt->bindParam(':org_id', $data->org_id);
-                $stmt->bindParam(':temp_password', $temp_password);
-                
-                if ($stmt->execute()) {
+                try {
+                    // First, archive the current president if exists
+                    $archiveQuery = "UPDATE users SET status = 'archived' 
+                                    WHERE org_id = :org_id AND role_id = 2 AND status = 'active'";
+                    $archiveStmt = $db->prepare($archiveQuery);
+                    $archiveStmt->bindParam(':org_id', $data->org_id);
+                    $archiveStmt->execute();
+                    
+                    // Create new president account with must_change_password = 1
+                    $query = "INSERT INTO users (first_name, last_name, email, password, role_id, org_id, temp_password, must_change_password, status, created_at) 
+                              VALUES (:first_name, :last_name, :email, :password, 2, :org_id, :temp_password, 1, 'active', NOW())";
+                    
+                    $stmt = $db->prepare($query);
+                    $stmt->bindParam(':first_name', $data->first_name);
+                    $stmt->bindParam(':last_name', $data->last_name);
+                    $stmt->bindParam(':email', $data->email);
+                    $stmt->bindParam(':password', $hashed_password);
+                    $stmt->bindParam(':org_id', $data->org_id);
+                    $stmt->bindParam(':temp_password', $temp_password);
+                    
+                    if (!$stmt->execute()) {
+                        throw new Exception("Failed to create president account");
+                    }
+                    
                     $user_id = $db->lastInsertId();
+                    
+                    // Update organization with new president_id
                     $organization->updatePresident($data->org_id, $user_id);
+                    
+                    $db->commit();
                     
                     echo json_encode([
                         "status" => "success", 
@@ -117,8 +150,9 @@ switch ($method) {
                         "temp_password" => $temp_password,
                         "user_id" => $user_id
                     ]);
-                } else {
-                    echo json_encode(["status" => "error", "message" => "Failed to create president account"]);
+                } catch (Exception $e) {
+                    $db->rollBack();
+                    echo json_encode(["status" => "error", "message" => $e->getMessage()]);
                 }
             } else {
                 echo json_encode(["status" => "error", "message" => "Incomplete Data"]);

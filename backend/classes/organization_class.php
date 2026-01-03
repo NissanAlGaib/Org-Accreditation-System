@@ -34,7 +34,7 @@ class Organization
     {
         try {
             $query = "SELECT o.*, 
-                      u.first_name, u.last_name, u.email,
+                      u.first_name, u.last_name, u.email, u.temp_password, u.status as user_status,
                       (SELECT COUNT(*) FROM documents WHERE org_id = o.org_id) as total_documents,
                       (SELECT COUNT(*) FROM documents WHERE org_id = o.org_id AND status = 'verified') as verified_documents,
                       (SELECT COUNT(*) FROM documents WHERE org_id = o.org_id AND status = 'pending') as pending_documents,
