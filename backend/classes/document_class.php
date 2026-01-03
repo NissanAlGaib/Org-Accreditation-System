@@ -65,4 +65,55 @@ class Document
             return false;
         }
     }
+
+    public function uploadDocument($org_id, $requirement_id, $file_name, $file_path, $academic_year_id)
+    {
+        try {
+            $query = "INSERT INTO " . $this->table . " 
+                      (org_id, requirement_id, file_name, file_path, academic_year_id, status, submitted_at)
+                      VALUES (:org_id, :requirement_id, :file_name, :file_path, :academic_year_id, 'pending', NOW())";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':org_id', $org_id);
+            $stmt->bindParam(':requirement_id', $requirement_id);
+            $stmt->bindParam(':file_name', $file_name);
+            $stmt->bindParam(':file_path', $file_path);
+            $stmt->bindParam(':academic_year_id', $academic_year_id);
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+            return false;
+        }
+    }
+
+    public function getDocumentById($document_id)
+    {
+        try {
+            $query = "SELECT d.*, r.requirement_name, r.requirement_type, o.org_name
+                      FROM " . $this->table . " d
+                      LEFT JOIN requirements r ON d.requirement_id = r.requirement_id
+                      LEFT JOIN organizations o ON d.org_id = o.org_id
+                      WHERE d.document_id = :document_id";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':document_id', $document_id);
+            $stmt->execute();
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+            return null;
+        }
+    }
+
+    public function getActiveAcademicYear()
+    {
+        try {
+            $query = "SELECT academic_year_id FROM academic_years WHERE is_active = 1 LIMIT 1";
+            $stmt = $this->conn->prepare($query);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ? $result['academic_year_id'] : null;
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+            return null;
+        }
+    }
 }

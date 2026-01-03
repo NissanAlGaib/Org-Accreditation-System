@@ -1,0 +1,18 @@
+# Uploaded documents
+uploads/documents/*
+!uploads/documents/.gitkeep
+
+# Temporary files
+*.tmp
+*.log
+*.swp
+*~
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-*
+
+# OS files
+.DS_Store
+Thumbs.db

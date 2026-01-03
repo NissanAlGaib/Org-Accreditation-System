@@ -335,9 +335,9 @@ if ($_SESSION['role_id'] == 1) {
                                         ${submittedDate}
                                     </td>
                                     <td class="px-6 py-4 text-center">
-                                        <button onclick="viewDocument('${escapeHtml(doc.file_path)}')" 
-                                                class="text-[#940505] hover:underline font-semibold">
-                                            View Document
+                                        <button onclick="viewDocument(${doc.document_id})" 
+                                                class="text-[#940505] hover:text-white hover:bg-[#940505] px-4 py-2 rounded-md border border-[#940505] transition-colors">
+                                            View
                                         </button>
                                     </td>
                                 </tr>
@@ -357,11 +357,11 @@ if ($_SESSION['role_id'] == 1) {
             }
         }
 
-        function viewDocument(filePath) {
-            if (filePath && filePath !== 'N/A') {
-                window.open(filePath, '_blank');
+        function viewDocument(documentId) {
+            if (documentId) {
+                window.open(`/Org-Accreditation-System/frontend/views/common/view-document.php?id=${documentId}`, '_blank', 'width=1200,height=800');
             } else {
-                alert('Document file not available');
+                alert('Document not available');
             }
         }
 
