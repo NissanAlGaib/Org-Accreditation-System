@@ -29,8 +29,9 @@ if ($_SESSION['role_id'] == 1) {
     <?php include_once '../../components/header.php'; ?>
     <div id="main-content" class="p-10 pt-0 h-full flex gap-8">
         <?php include_once '../../components/user-sidebar.php'; ?>
-        <div class="flex flex-col w-full gap-5">
-            <div class="flex justify-between items-center">
+        <div class="flex flex-col w-full gap-5 overflow-auto">
+            <!-- Header Section -->
+            <div class="flex justify-between items-center flex-wrap gap-4">
                 <div class="flex flex-col gap-2">
                     <p class="manrope-bold text-4xl">My Organization</p>
                     <p class="text-md text-gray-600">Manage your organization's profile and information</p>
@@ -44,34 +45,31 @@ if ($_SESSION['role_id'] == 1) {
             </div>
 
             <!-- Organization Profile Card -->
-            <div class="bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden">
-                <!-- Header with Banner -->
-                <div class="relative h-32 bg-gradient-to-r from-[#940505] to-[#bb0606]">
-                    <div class="absolute -bottom-12 left-8 flex items-end gap-6">
-                        <div id="logoContainer" class="bg-white rounded-xl border-4 border-white shadow-xl w-32 h-32 flex items-center justify-center overflow-hidden">
+            <div class="bg-white rounded-xl shadow-xl/20 border-[0.1px]">
+                <!-- Header with Logo -->
+                <div class="relative bg-gradient-to-r from-[#940505] to-[#bb0606] rounded-t-xl p-8">
+                    <div class="flex items-center gap-6">
+                        <div id="logoContainer" class="bg-white rounded-xl border-4 border-white shadow-xl w-24 h-24 flex items-center justify-center overflow-hidden flex-shrink-0">
                             <img id="orgLogoImg" src="" alt="Organization Logo" class="hidden w-full h-full object-cover">
                             <div id="orgLogoPlaceholder" class="bg-gradient-to-br from-[#940505] to-[#7a0404] w-full h-full flex items-center justify-center">
-                                <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                                 </svg>
+                            </div>
+                        </div>
+                        <div class="text-white flex-1 min-w-0">
+                            <h2 id="orgName" class="text-3xl manrope-bold mb-2 truncate">Loading...</h2>
+                            <div class="flex items-center gap-3 flex-wrap">
+                                <span id="orgStatus" class="inline-block bg-white bg-opacity-20 text-white text-sm font-semibold px-4 py-1.5 rounded-full">-</span>
+                                <span class="text-white opacity-75">•</span>
+                                <span class="text-white opacity-90">ID: <span id="orgId" class="font-semibold">-</span></span>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Content -->
-                <div class="pt-16 px-8 pb-8">
-                    <div class="flex justify-between items-start mb-6">
-                        <div>
-                            <h2 id="orgName" class="text-3xl manrope-bold text-gray-800 mb-2">Loading...</h2>
-                            <div class="flex items-center gap-3">
-                                <span id="orgStatus" class="inline-block bg-blue-500 text-white text-sm font-semibold px-4 py-1.5 rounded-full">-</span>
-                                <span class="text-gray-600">•</span>
-                                <span class="text-gray-600">ID: <span id="orgId" class="font-semibold">-</span></span>
-                            </div>
-                        </div>
-                    </div>
-
+                <div class="p-8">
                     <!-- Description Section -->
                     <div class="mb-8 p-6 bg-gray-50 rounded-lg">
                         <h3 class="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wide">About Organization</h3>
@@ -79,64 +77,64 @@ if ($_SESSION['role_id'] == 1) {
                     </div>
 
                     <!-- Information Grid -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                         <div class="p-5 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-lg border border-blue-200">
                             <div class="flex items-center gap-3 mb-2">
-                                <div class="bg-blue-500 p-2 rounded-lg">
+                                <div class="bg-blue-500 p-2 rounded-lg flex-shrink-0">
                                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                                     </svg>
                                 </div>
                                 <p class="text-sm font-semibold text-gray-600">President</p>
                             </div>
-                            <p id="presidentName" class="text-lg font-semibold text-gray-800">-</p>
-                            <p id="presidentEmail" class="text-sm text-gray-600 mt-1">-</p>
+                            <p id="presidentName" class="text-base font-semibold text-gray-800 truncate">-</p>
+                            <p id="presidentEmail" class="text-xs text-gray-600 mt-1 truncate">-</p>
                         </div>
 
                         <div class="p-5 bg-gradient-to-br from-green-50 to-green-100/50 rounded-lg border border-green-200">
                             <div class="flex items-center gap-3 mb-2">
-                                <div class="bg-green-500 p-2 rounded-lg">
+                                <div class="bg-green-500 p-2 rounded-lg flex-shrink-0">
                                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                     </svg>
                                 </div>
                                 <p class="text-sm font-semibold text-gray-600">Created Date</p>
                             </div>
-                            <p id="createdDate" class="text-lg font-semibold text-gray-800">-</p>
+                            <p id="createdDate" class="text-base font-semibold text-gray-800">-</p>
                         </div>
 
                         <div class="p-5 bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-lg border border-purple-200">
                             <div class="flex items-center gap-3 mb-2">
-                                <div class="bg-purple-500 p-2 rounded-lg">
+                                <div class="bg-purple-500 p-2 rounded-lg flex-shrink-0">
                                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
                                 </div>
                                 <p class="text-sm font-semibold text-gray-600">Last Updated</p>
                             </div>
-                            <p id="updatedDate" class="text-lg font-semibold text-gray-800">-</p>
+                            <p id="updatedDate" class="text-base font-semibold text-gray-800">-</p>
                         </div>
                     </div>
 
                     <!-- Document Statistics -->
                     <div class="border-t border-gray-200 pt-6">
                         <h3 class="text-lg manrope-bold text-gray-800 mb-5">Document Statistics</h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <div class="text-center p-5 bg-gray-50 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-                                <p class="text-sm text-gray-600 mb-2">Total Documents</p>
-                                <p id="totalDocs" class="text-3xl manrope-bold text-gray-800">-</p>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="text-center p-4 bg-gray-50 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                                <p class="text-xs text-gray-600 mb-2">Total</p>
+                                <p id="totalDocs" class="text-2xl manrope-bold text-gray-800">-</p>
                             </div>
-                            <div class="text-center p-5 bg-green-50 rounded-lg border border-green-200 hover:shadow-md transition-shadow">
-                                <p class="text-sm text-gray-600 mb-2">Verified</p>
-                                <p id="verifiedDocs" class="text-3xl manrope-bold text-green-600">-</p>
+                            <div class="text-center p-4 bg-green-50 rounded-lg border border-green-200 hover:shadow-md transition-shadow">
+                                <p class="text-xs text-gray-600 mb-2">Verified</p>
+                                <p id="verifiedDocs" class="text-2xl manrope-bold text-green-600">-</p>
                             </div>
-                            <div class="text-center p-5 bg-yellow-50 rounded-lg border border-yellow-200 hover:shadow-md transition-shadow">
-                                <p class="text-sm text-gray-600 mb-2">Pending</p>
-                                <p id="pendingDocs" class="text-3xl manrope-bold text-yellow-600">-</p>
+                            <div class="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200 hover:shadow-md transition-shadow">
+                                <p class="text-xs text-gray-600 mb-2">Pending</p>
+                                <p id="pendingDocs" class="text-2xl manrope-bold text-yellow-600">-</p>
                             </div>
-                            <div class="text-center p-5 bg-red-50 rounded-lg border border-red-200 hover:shadow-md transition-shadow">
-                                <p class="text-sm text-gray-600 mb-2">Returned</p>
-                                <p id="returnedDocs" class="text-3xl manrope-bold text-red-600">-</p>
+                            <div class="text-center p-4 bg-red-50 rounded-lg border border-red-200 hover:shadow-md transition-shadow">
+                                <p class="text-xs text-gray-600 mb-2">Returned</p>
+                                <p id="returnedDocs" class="text-2xl manrope-bold text-red-600">-</p>
                             </div>
                         </div>
                     </div>
