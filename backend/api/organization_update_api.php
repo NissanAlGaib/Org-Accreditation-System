@@ -8,7 +8,7 @@ if (empty($_SESSION['user_id']) || empty($_SESSION['org_id'])) {
     exit;
 }
 
-require_once '../config/database.php';
+require_once 'database.php';
 require_once '../classes/organization_class.php';
 
 $database = new Database();
