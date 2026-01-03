@@ -86,7 +86,7 @@
         }
 
         try {
-            const response = await fetch('../../backend/api/user_api.php', {
+            const response = await fetch('/Org-Accreditation-System/backend/api/organization_api.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

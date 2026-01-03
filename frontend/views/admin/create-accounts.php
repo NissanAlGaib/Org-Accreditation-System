@@ -5,6 +5,14 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: /Org-Accreditation-System/frontend/views/auth/login.php");
     exit();
 }
+
+include_once '../../backend/api/database.php';
+include_once '../../backend/classes/organization_class.php';
+
+$database = new Database();
+$db = $database->getConnection();
+$organization = new Organization($db);
+$organizations = $organization->getOrganizations();
 ?>
 <!DOCTYPE html>
 <html lang="en">

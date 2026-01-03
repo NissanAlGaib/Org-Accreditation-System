@@ -15,6 +15,12 @@ $menu_items = [
         'icon-active' => $base_path . 'my-org-active.png'
     ],
     [
+        'label' => 'Documents',
+        'link'  => 'documents.php',
+        'icon'   => $base_path . 'requirements.png',
+        'icon-active' => $base_path . 'requirements-active.png'
+    ],
+    [
         'label' => 'Create Accounts',
         'link'  => 'create-accounts.php',
         'icon'   => $base_path . 'create-account.png',
