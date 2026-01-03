@@ -11,18 +11,7 @@ if (!isset($_GET['org_id'])) {
     exit();
 }
 
-include_once '../../backend/api/database.php';
-include_once '../../backend/classes/document_class.php';
-include_once '../../backend/classes/organization_class.php';
-
-$database = new Database();
-$db = $database->getConnection();
-$document = new Document($db);
-$organization = new Organization($db);
-
 $org_id = $_GET['org_id'];
-$org_data = $organization->getOrganizationById($org_id);
-$documents = $document->getDocumentsByOrganization($org_id);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -30,7 +19,7 @@ $documents = $document->getDocumentsByOrganization($org_id);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Review Documents - <?php echo htmlspecialchars($org_data['org_name'] ?? 'Organization'); ?></title>
+    <title>Review Documents</title>
     <link href="/Org-Accreditation-System/frontend/src/output.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -46,7 +35,7 @@ $documents = $document->getDocumentsByOrganization($org_id);
         <div class="flex flex-col w-full gap-5 overflow-y-auto">
             <div class="flex justify-between items-center">
                 <div class="flex flex-col gap-2">
-                    <p class="manrope-bold text-4xl"><?php echo htmlspecialchars($org_data['org_name'] ?? 'Organization'); ?></p>
+                    <p id="orgNameTitle" class="manrope-bold text-4xl">Organization</p>
                     <p class="text-md">Review submitted documents</p>
                 </div>
                 <a href="documents.php" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-all">
@@ -73,76 +62,12 @@ $documents = $document->getDocumentsByOrganization($org_id);
                                 <th scope="col" class="px-6 py-4 font-semibold text-center">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200">
-                            <?php if (empty($documents)): ?>
-                                <tr>
-                                    <td colspan="7" class="px-6 py-8 text-center text-gray-500">
-                                        No documents submitted yet
-                                    </td>
-                                </tr>
-                            <?php else: ?>
-                                <?php foreach ($documents as $doc): ?>
-                                    <tr class="hover:bg-gray-50 transition-colors duration-200">
-                                        <td class="px-6 py-4 font-medium text-gray-900">
-                                            <?php echo htmlspecialchars($doc['requirement_name'] ?? 'N/A'); ?>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">
-                                                <?php echo htmlspecialchars($doc['requirement_type'] ?? 'N/A'); ?>
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <?php echo htmlspecialchars($doc['file_name'] ?? 'document.pdf'); ?>
-                                        </td>
-                                        <td class="px-6 py-4 text-gray-500">
-                                            <?php echo isset($doc['submitted_at']) ? date('M d, Y', strtotime($doc['submitted_at'])) : 'N/A'; ?>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <?php
-                                            $status = $doc['status'] ?? 'pending';
-                                            $statusColors = [
-                                                'verified' => 'bg-green-100 text-green-700',
-                                                'pending' => 'bg-yellow-100 text-yellow-700',
-                                                'returned' => 'bg-red-100 text-red-700'
-                                            ];
-                                            $statusColor = $statusColors[$status] ?? 'bg-gray-100 text-gray-700';
-                                            ?>
-                                            <span class="<?php echo $statusColor; ?> px-3 py-1 rounded-full text-xs font-semibold">
-                                                <?php echo ucfirst($status); ?>
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 max-w-xs truncate">
-                                            <?php echo htmlspecialchars($doc['remarks'] ?? '-'); ?>
-                                        </td>
-                                        <td class="px-6 py-4 text-center">
-                                            <div class="flex items-center justify-center gap-2">
-                                                <button onclick="updateStatus(<?php echo intval($doc['document_id']); ?>, 'verified')" 
-                                                        class="text-green-600 hover:text-green-800 transition-colors" 
-                                                        title="Verify">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                                    </svg>
-                                                </button>
-                                                <button onclick="openReturnModal(<?php echo intval($doc['document_id']); ?>)" 
-                                                        class="text-red-600 hover:text-red-800 transition-colors" 
-                                                        title="Return for revision">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
-                                                    </svg>
-                                                </button>
-                                                <button onclick="viewDocument(<?php echo intval($doc['document_id']); ?>)" 
-                                                        class="text-blue-600 hover:text-blue-800 transition-colors" 
-                                                        title="View document">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
+                        <tbody id="documentsTableBody" class="divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                                    Loading documents...
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -177,6 +102,10 @@ $documents = $document->getDocumentsByOrganization($org_id);
             </div>
         </div>
     </div>
+    
+    <script>
+        const orgId = <?php echo json_encode($org_id); ?>;
+    </script>
 </body>
 
 </html>

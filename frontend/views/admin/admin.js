@@ -12,6 +12,35 @@
 
     let isNewOrgMode = false;
 
+    // Load organizations on page load
+    loadOrganizations();
+
+    async function loadOrganizations() {
+        try {
+            const response = await fetch('/Org-Accreditation-System/backend/api/organization_api.php', {
+                method: 'GET'
+            });
+            
+            if (!response.ok) throw new Error('Network error');
+            const result = await response.json();
+            
+            if (result.status === 'success' && result.data) {
+                orgSelect.innerHTML = '<option value="">Select an Organization...</option>';
+                result.data.forEach(org => {
+                    const option = document.createElement('option');
+                    option.value = org.org_id;
+                    option.textContent = org.org_name;
+                    orgSelect.appendChild(option);
+                });
+            } else {
+                orgSelect.innerHTML = '<option value="">Failed to load organizations</option>';
+            }
+        } catch (error) {
+            console.error('Error loading organizations:', error);
+            orgSelect.innerHTML = '<option value="">Error loading organizations</option>';
+        }
+    }
+
     function openModal() {
         modal.classList.remove('hidden');
         resetToDefaultState();

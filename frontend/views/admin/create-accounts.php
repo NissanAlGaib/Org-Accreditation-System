@@ -5,14 +5,6 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: /Org-Accreditation-System/frontend/views/auth/login.php");
     exit();
 }
-
-include_once '../../backend/api/database.php';
-include_once '../../backend/classes/organization_class.php';
-
-$database = new Database();
-$db = $database->getConnection();
-$organization = new Organization($db);
-$organizations = $organization->getOrganizations();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -225,10 +217,7 @@ $organizations = $organization->getOrganizations();
 
                     <div id="orgSelectContainer">
                         <select name="org_id" id="orgIdInput" class="w-full rounded-lg border-gray-300 border px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all">
-                            <option value="">Select an Organization...</option>
-                            <?php foreach ($organizations as $org): ?>
-                                <option value="<?= $org['id'] ?>"><?= htmlspecialchars($org['org_name']) ?></option>
-                            <?php endforeach; ?>
+                            <option value="">Loading organizations...</option>
                         </select>
                     </div>
 

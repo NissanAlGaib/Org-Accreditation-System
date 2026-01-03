@@ -5,14 +5,6 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: /Org-Accreditation-System/frontend/views/auth/login.php");
     exit();
 }
-
-include_once '../../backend/api/database.php';
-include_once '../../backend/classes/requirement_class.php';
-
-$database = new Database();
-$db = $database->getConnection();
-$requirement = new Requirement($db);
-$requirements = $requirement->getRequirements();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -67,59 +59,12 @@ $requirements = $requirement->getRequirements();
                                 <th scope="col" class="px-6 py-4 font-semibold text-center">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200">
-                            <?php if (empty($requirements)): ?>
-                                <tr>
-                                    <td colspan="6" class="px-6 py-8 text-center text-gray-500">
-                                        No requirements added yet
-                                    </td>
-                                </tr>
-                            <?php else: ?>
-                                <?php foreach ($requirements as $req): ?>
-                                    <tr class="hover:bg-gray-50 transition-colors duration-200">
-                                        <td class="px-6 py-4 font-medium text-gray-900">
-                                            <div class="flex items-center gap-3">
-                                                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                                </svg>
-                                                <?php echo htmlspecialchars($req['requirement_name']); ?>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded text-xs font-semibold">
-                                                <?php echo htmlspecialchars($req['requirement_type']); ?>
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 max-w-xs truncate">
-                                            <?php echo htmlspecialchars($req['description'] ?? '-'); ?>
-                                        </td>
-                                        <td class="px-6 py-4 text-gray-500">
-                                            <?php echo htmlspecialchars($req['first_name'] . ' ' . $req['last_name']); ?>
-                                        </td>
-                                        <td class="px-6 py-4 text-gray-500">
-                                            <?php echo isset($req['created_at']) ? date('M d, Y', strtotime($req['created_at'])) : 'N/A'; ?>
-                                        </td>
-                                        <td class="px-6 py-4 text-center">
-                                            <div class="flex items-center justify-center gap-3">
-                                                <button onclick="editRequirement(<?php echo htmlspecialchars(json_encode($req)); ?>)" 
-                                                        class="text-blue-600 hover:text-blue-800 transition-colors" 
-                                                        title="Edit">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                                    </svg>
-                                                </button>
-                                                <button onclick="deleteRequirement(<?php echo $req['requirement_id']; ?>)" 
-                                                        class="text-red-500 hover:text-red-700 transition-colors" 
-                                                        title="Delete">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
+                        <tbody id="requirementsTableBody" class="divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                                    Loading requirements...
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>

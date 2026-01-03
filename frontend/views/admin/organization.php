@@ -5,14 +5,6 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: /Org-Accreditation-System/frontend/views/auth/login.php");
     exit();
 }
-
-include_once '../../backend/api/database.php';
-include_once '../../backend/classes/organization_class.php';
-
-$database = new Database();
-$db = $database->getConnection();
-$organization = new Organization($db);
-$organizations = $organization->getOrganizations();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -26,6 +18,7 @@ $organizations = $organization->getOrganizations();
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
+    <script defer src="organization.js"></script>
 </head>
 
 <body class="bg-[#F1ECEC] h-screen">
@@ -58,81 +51,12 @@ $organizations = $organization->getOrganizations();
                                 <th scope="col" class="px-6 py-4 font-semibold">Status</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200">
-                            <?php if (empty($organizations)): ?>
-                                <tr>
-                                    <td colspan="8" class="px-6 py-8 text-center text-gray-500">
-                                        No organizations registered yet
-                                    </td>
-                                </tr>
-                            <?php else: ?>
-                                <?php foreach ($organizations as $org): ?>
-                                    <tr class="hover:bg-gray-50 transition-colors duration-200">
-                                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                                            <div class="flex items-center gap-3">
-                                                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                                                </svg>
-                                                <?php echo htmlspecialchars($org['org_name']); ?>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <?php if ($org['first_name']): ?>
-                                                <div class="flex items-center gap-2">
-                                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                                    </svg>
-                                                    <span class="text-gray-700"><?php echo htmlspecialchars($org['first_name'] . ' ' . $org['last_name']); ?></span>
-                                                </div>
-                                            <?php else: ?>
-                                                <span class="text-gray-400 italic">Not assigned</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <?php if ($org['email']): ?>
-                                                <span class="text-gray-500"><?php echo htmlspecialchars($org['email']); ?></span>
-                                            <?php else: ?>
-                                                <span class="text-gray-400 italic">-</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td class="px-6 py-4 text-center">
-                                            <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-semibold">
-                                                <?php echo $org['total_documents'] ?? 0; ?>
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 text-center">
-                                            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
-                                                <?php echo $org['verified_documents'] ?? 0; ?>
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 text-center">
-                                            <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-semibold">
-                                                <?php echo $org['pending_documents'] ?? 0; ?>
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 text-center">
-                                            <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-semibold">
-                                                <?php echo $org['returned_documents'] ?? 0; ?>
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <?php
-                                            $status = $org['status'] ?? 'pending';
-                                            $statusColors = [
-                                                'accredited' => 'bg-[#0e4b68] text-white',
-                                                'pending' => 'bg-yellow-500 text-white',
-                                                'active' => 'bg-blue-500 text-white',
-                                                'inactive' => 'bg-gray-500 text-white'
-                                            ];
-                                            $statusColor = $statusColors[$status] ?? 'bg-gray-500 text-white';
-                                            ?>
-                                            <span class="<?php echo $statusColor; ?> text-xs font-semibold px-3 py-1 rounded-full">
-                                                <?php echo ucfirst($status); ?>
-                                            </span>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
+                        <tbody id="organizationsTableBody" class="divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="8" class="px-6 py-8 text-center text-gray-500">
+                                    Loading organizations...
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
