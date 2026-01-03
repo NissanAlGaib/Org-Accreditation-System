@@ -1,6 +1,24 @@
 -- Database schema for Organization Accreditation System
 -- This file contains the SQL statements to create all necessary tables
 
+-- Users table (base table - must be created first)
+CREATE TABLE IF NOT EXISTS `users` (
+  `user_id` int(11) NOT NULL AUTO_INCREMENT,
+  `role_id` int(11) DEFAULT NULL,
+  `org_id` int(11) DEFAULT NULL,
+  `first_name` varchar(100) NOT NULL,
+  `last_name` varchar(100) NOT NULL,
+  `email` varchar(255) NOT NULL UNIQUE,
+  `password` varchar(255) NOT NULL,
+  `temp_password` varchar(50) DEFAULT NULL,
+  `status` varchar(50) DEFAULT 'pending',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`),
+  KEY `role_id` (`role_id`),
+  KEY `org_id` (`org_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Organizations table
 CREATE TABLE IF NOT EXISTS `organizations` (
   `org_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -14,12 +32,6 @@ CREATE TABLE IF NOT EXISTS `organizations` (
   KEY `president_id` (`president_id`),
   KEY `created_by` (`created_by`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Update users table to include org_id and temp_password
-ALTER TABLE `users` 
-  ADD COLUMN IF NOT EXISTS `org_id` int(11) DEFAULT NULL,
-  ADD COLUMN IF NOT EXISTS `temp_password` varchar(50) DEFAULT NULL,
-  ADD COLUMN IF NOT EXISTS `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
 -- Requirements table
 CREATE TABLE IF NOT EXISTS `requirements` (
@@ -72,10 +84,14 @@ CREATE TABLE IF NOT EXISTS `documents` (
   CONSTRAINT `fk_documents_academic_year` FOREIGN KEY (`academic_year_id`) REFERENCES `academic_years` (`academic_year_id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Add foreign keys to organizations table
+-- Add foreign key constraints to organizations table
 ALTER TABLE `organizations`
-  ADD CONSTRAINT IF NOT EXISTS `fk_organizations_president` FOREIGN KEY (`president_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL,
-  ADD CONSTRAINT IF NOT EXISTS `fk_organizations_creator` FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL;
+  ADD CONSTRAINT `fk_organizations_president` FOREIGN KEY (`president_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_organizations_creator` FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL;
+
+-- Add foreign key constraint from users to organizations
+ALTER TABLE `users`
+  ADD CONSTRAINT `fk_users_organization` FOREIGN KEY (`org_id`) REFERENCES `organizations` (`org_id`) ON DELETE SET NULL;
 
 -- Sample academic years data
 INSERT INTO `academic_years` (`year_start`, `year_end`, `semester1_start`, `semester1_end`, `semester2_start`, `semester2_end`, `is_active`) VALUES
