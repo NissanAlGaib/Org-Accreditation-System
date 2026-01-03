@@ -29,15 +29,16 @@ if ($_SESSION['role_id'] == 1) {
     <?php include_once '../../components/header.php'; ?>
     <div id="main-content" class="p-10 pt-0 h-full flex gap-8">
         <?php include_once '../../components/user-sidebar.php'; ?>
-        <div class="flex flex-col w-full gap-5">
-            <div class="flex flex-col gap-2">
-                <p class="manrope-bold text-4xl">Welcome, <?php echo htmlspecialchars($_SESSION['first_name']); ?>!</p>
-                <p class="text-md">Here's an overview of your organization's accreditation progress</p>
-            </div>
+        <div class="flex flex-col w-full gap-8">
+            <div class="flex flex-col w-full gap-5">
+                <div class="flex flex-col gap-2">
+                    <p class="manrope-bold text-4xl">Welcome, <?php echo htmlspecialchars($_SESSION['first_name']); ?>!</p>
+                    <p class="text-md">Here's an overview of your organization's accreditation progress</p>
+                </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Total Documents -->
-                <div class="bg-white rounded-xl border-[0.1px] border-black shadow-xl/20 p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Total Documents -->
+                    <div class="bg-white rounded-xl border-[0.1px] border-black shadow-xl/20 p-6">
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-sm text-gray-600">Total Documents</p>
@@ -51,8 +52,8 @@ if ($_SESSION['role_id'] == 1) {
                         </div>
                     </div>
 
-                <!-- Verified Documents -->
-                <div class="bg-white rounded-xl border-[0.1px] border-black shadow-xl/20 p-6">
+                    <!-- Verified Documents -->
+                    <div class="bg-white rounded-xl border-[0.1px] border-black shadow-xl/20 p-6">
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-sm text-gray-600">Verified</p>
@@ -66,8 +67,8 @@ if ($_SESSION['role_id'] == 1) {
                         </div>
                     </div>
 
-                <!-- Pending Documents -->
-                <div class="bg-white rounded-xl border-[0.1px] border-black shadow-xl/20 p-6">
+                    <!-- Pending Documents -->
+                    <div class="bg-white rounded-xl border-[0.1px] border-black shadow-xl/20 p-6">
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-sm text-gray-600">Pending</p>
@@ -81,8 +82,8 @@ if ($_SESSION['role_id'] == 1) {
                         </div>
                     </div>
 
-                <!-- Returned Documents -->
-                <div class="bg-white rounded-xl border-[0.1px] border-black shadow-xl/20 p-6">
+                    <!-- Returned Documents -->
+                    <div class="bg-white rounded-xl border-[0.1px] border-black shadow-xl/20 p-6">
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-sm text-gray-600">Returned</p>
@@ -101,26 +102,25 @@ if ($_SESSION['role_id'] == 1) {
             <!-- Accreditation Progress -->
             <div class="bg-white rounded-xl border-[0.1px] border-black shadow-xl/20 p-6">
                 <p class="manrope-bold text-xl mb-4">Accreditation Progress</p>
-                    <div class="flex items-center gap-4">
-                        <div class="flex-1">
-                            <div class="w-full bg-gray-200 rounded-full h-4">
-                                <div id="progressBar" class="bg-green-600 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <p id="progressPercentage" class="text-2xl manrope-bold text-gray-800">0%</p>
+                <div class="flex items-center gap-4">
+                    <div class="flex-1">
+                        <div class="w-full bg-gray-200 rounded-full h-4">
+                            <div id="progressBar" class="bg-green-600 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
                         </div>
                     </div>
-                    <p class="text-sm text-gray-600 mt-2">Completion rate based on verified vs total required documents</p>
+                    <div>
+                        <p id="progressPercentage" class="text-2xl manrope-bold text-gray-800">0%</p>
+                    </div>
                 </div>
+                <p class="text-sm text-gray-600 mt-2">Completion rate based on verified vs total required documents</p>
+            </div>
 
             <!-- Organization Status -->
             <div class="bg-white rounded-xl border-[0.1px] border-black shadow-xl/20 p-6">
                 <p class="manrope-bold text-xl mb-4">Organization Status</p>
-                    <div class="flex items-center gap-3">
-                        <p class="text-gray-700">Current Status:</p>
-                        <span id="orgStatus" class="bg-blue-500 text-white text-sm font-semibold px-4 py-2 rounded-full">Loading...</span>
-                    </div>
+                <div class="flex items-center gap-3">
+                    <p class="text-gray-700">Current Status:</p>
+                    <span id="orgStatus" class="bg-blue-500 text-white text-sm font-semibold px-4 py-2 rounded-full">Loading...</span>
                 </div>
             </div>
         </div>
@@ -163,7 +163,7 @@ if ($_SESSION['role_id'] == 1) {
                         const verified = parseInt(userOrg.verified_documents) || 0;
                         const pending = parseInt(userOrg.pending_documents) || 0;
                         const returned = parseInt(userOrg.returned_documents) || 0;
-                        
+
                         // Calculate completion based on verified documents out of total required documents
                         const completion = totalRequirements > 0 ? Math.round((verified / totalRequirements) * 100) : 0;
 
