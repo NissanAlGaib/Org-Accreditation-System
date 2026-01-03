@@ -25,22 +25,19 @@ if ($_SESSION['role_id'] == 1) {
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
 </head>
 
-<body class="bg-gray-50">
-    <div class="flex h-screen gap-4 p-4">
-        <?php include '../../components/user-sidebar.php'; ?>
-        
-        <div class="w-full h-full flex flex-col gap-5">
-            <?php include '../../components/header.php'; ?>
-            
-            <div class="flex-1 overflow-y-auto px-10 pb-10">
-                <div class="mb-8">
-                    <h1 class="text-3xl manrope-bold text-gray-800">Welcome, <?php echo htmlspecialchars($_SESSION['first_name']); ?>!</h1>
-                    <p class="text-gray-600 mt-2">Here's an overview of your organization's accreditation progress</p>
-                </div>
+<body class="bg-[#F1ECEC] h-screen">
+    <?php include_once '../../components/header.php'; ?>
+    <div id="main-content" class="p-10 pt-0 h-full flex gap-8">
+        <?php include_once '../../components/user-sidebar.php'; ?>
+        <div class="flex flex-col w-full gap-5">
+            <div class="flex flex-col gap-2">
+                <p class="manrope-bold text-4xl">Welcome, <?php echo htmlspecialchars($_SESSION['first_name']); ?>!</p>
+                <p class="text-md">Here's an overview of your organization's accreditation progress</p>
+            </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <!-- Total Documents -->
-                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Total Documents -->
+                <div class="bg-white rounded-xl border-[0.1px] border-black shadow-xl/20 p-6">
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-sm text-gray-600">Total Documents</p>
@@ -54,8 +51,8 @@ if ($_SESSION['role_id'] == 1) {
                         </div>
                     </div>
 
-                    <!-- Verified Documents -->
-                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                <!-- Verified Documents -->
+                <div class="bg-white rounded-xl border-[0.1px] border-black shadow-xl/20 p-6">
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-sm text-gray-600">Verified</p>
@@ -69,8 +66,8 @@ if ($_SESSION['role_id'] == 1) {
                         </div>
                     </div>
 
-                    <!-- Pending Documents -->
-                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                <!-- Pending Documents -->
+                <div class="bg-white rounded-xl border-[0.1px] border-black shadow-xl/20 p-6">
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-sm text-gray-600">Pending</p>
@@ -84,8 +81,8 @@ if ($_SESSION['role_id'] == 1) {
                         </div>
                     </div>
 
-                    <!-- Returned Documents -->
-                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                <!-- Returned Documents -->
+                <div class="bg-white rounded-xl border-[0.1px] border-black shadow-xl/20 p-6">
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-sm text-gray-600">Returned</p>
@@ -99,10 +96,11 @@ if ($_SESSION['role_id'] == 1) {
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Accreditation Progress -->
-                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-8">
-                    <h2 class="text-xl manrope-bold text-gray-800 mb-4">Accreditation Progress</h2>
+            <!-- Accreditation Progress -->
+            <div class="bg-white rounded-xl border-[0.1px] border-black shadow-xl/20 p-6">
+                <p class="manrope-bold text-xl mb-4">Accreditation Progress</p>
                     <div class="flex items-center gap-4">
                         <div class="flex-1">
                             <div class="w-full bg-gray-200 rounded-full h-4">
@@ -116,9 +114,9 @@ if ($_SESSION['role_id'] == 1) {
                     <p class="text-sm text-gray-600 mt-2">Completion rate based on verified documents</p>
                 </div>
 
-                <!-- Organization Status -->
-                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                    <h2 class="text-xl manrope-bold text-gray-800 mb-4">Organization Status</h2>
+            <!-- Organization Status -->
+            <div class="bg-white rounded-xl border-[0.1px] border-black shadow-xl/20 p-6">
+                <p class="manrope-bold text-xl mb-4">Organization Status</p>
                     <div class="flex items-center gap-3">
                         <p class="text-gray-700">Current Status:</p>
                         <span id="orgStatus" class="bg-blue-500 text-white text-sm font-semibold px-4 py-2 rounded-full">Loading...</span>

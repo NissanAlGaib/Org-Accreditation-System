@@ -25,24 +25,24 @@ if ($_SESSION['role_id'] == 1) {
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
 </head>
 
-<body class="bg-gray-50">
-    <div class="flex h-screen gap-4 p-4">
-        <?php include '../../components/user-sidebar.php'; ?>
-        
-        <div class="w-full h-full flex flex-col gap-5">
-            <?php include '../../components/header.php'; ?>
-            
-            <div class="flex-1 overflow-y-auto px-10 pb-10">
-                <div class="mb-8">
-                    <h1 class="text-3xl manrope-bold text-gray-800">Requirements</h1>
-                    <p class="text-gray-600 mt-2">Upload and manage your accreditation documents</p>
-                </div>
+<body class="bg-[#F1ECEC] h-screen">
+    <?php include_once '../../components/header.php'; ?>
+    <div id="main-content" class="p-10 pt-0 h-full flex gap-8">
+        <?php include_once '../../components/user-sidebar.php'; ?>
+        <div class="flex flex-col w-full gap-5">
+            <div class="flex flex-col gap-2">
+                <p class="manrope-bold text-4xl">Requirements</p>
+                <p class="text-md">Upload and manage your accreditation documents</p>
+            </div>
 
-                <!-- Requirements List -->
-                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                    <h2 class="text-xl manrope-bold text-gray-800 mb-6">Accreditation Requirements</h2>
-                    
-                    <div class="overflow-x-auto">
+            <!-- Requirements List -->
+            <div class="flex flex-col w-full min-h-60 bg-white rounded-xl border-[0.1px] border-black shadow-xl/20 p-7 gap-4">
+                <div>
+                    <p class="manrope-bold text-xl">Accreditation Requirements</p>
+                    <p class="text-sm">Submit documents for each requirement</p>
+                </div>
+                
+                <div class="overflow-x-auto bg-white rounded-lg">
                         <table class="w-full text-sm text-left text-gray-600">
                             <thead class="text-xs text-gray-700 uppercase border-b border-gray-200">
                                 <tr>
@@ -60,7 +60,6 @@ if ($_SESSION['role_id'] == 1) {
                                 </tr>
                             </tbody>
                         </table>
-                    </div>
                 </div>
             </div>
         </div>
