@@ -116,21 +116,21 @@ $documents = $document->getDocumentsByOrganization($org_id);
                                         </td>
                                         <td class="px-6 py-4 text-center">
                                             <div class="flex items-center justify-center gap-2">
-                                                <button onclick="updateStatus(<?php echo $doc['document_id']; ?>, 'verified')" 
+                                                <button onclick="updateStatus(<?php echo intval($doc['document_id']); ?>, 'verified')" 
                                                         class="text-green-600 hover:text-green-800 transition-colors" 
                                                         title="Verify">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                                     </svg>
                                                 </button>
-                                                <button onclick="openReturnModal(<?php echo $doc['document_id']; ?>)" 
+                                                <button onclick="openReturnModal(<?php echo intval($doc['document_id']); ?>)" 
                                                         class="text-red-600 hover:text-red-800 transition-colors" 
                                                         title="Return for revision">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
                                                     </svg>
                                                 </button>
-                                                <button onclick="viewDocument(<?php echo $doc['document_id']; ?>)" 
+                                                <button onclick="viewDocument(<?php echo intval($doc['document_id']); ?>)" 
                                                         class="text-blue-600 hover:text-blue-800 transition-colors" 
                                                         title="View document">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

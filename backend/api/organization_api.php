@@ -50,7 +50,7 @@ switch ($method) {
         if ($action === 'create_new_org_and_president') {
             if (!empty($data->new_org_name) && !empty($data->first_name) && !empty($data->last_name) && !empty($data->email)) {
                 
-                $temp_password = 'TMP_' . bin2hex(random_bytes(4));
+                $temp_password = 'TMP_' . bin2hex(random_bytes(8));
                 
                 $hashed_password = password_hash($temp_password, PASSWORD_BCRYPT);
                 
@@ -93,7 +93,7 @@ switch ($method) {
         } elseif ($action === 'create_org_president') {
             if (!empty($data->org_id) && !empty($data->first_name) && !empty($data->last_name) && !empty($data->email)) {
                 
-                $temp_password = 'TMP_' . bin2hex(random_bytes(4));
+                $temp_password = 'TMP_' . bin2hex(random_bytes(8));
                 $hashed_password = password_hash($temp_password, PASSWORD_BCRYPT);
                 
                 $query = "INSERT INTO users (first_name, last_name, email, password, role_id, org_id, temp_password, status, created_at) 
