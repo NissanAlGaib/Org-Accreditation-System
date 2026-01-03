@@ -2,6 +2,10 @@
 uploads/documents/*
 !uploads/documents/.gitkeep
 
+# Uploaded logos
+uploads/logos/*
+!uploads/logos/.gitkeep
+
 # Temporary files
 *.tmp
 *.log

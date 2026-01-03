@@ -95,4 +95,29 @@ class Organization
             return false;
         }
     }
+
+    public function updateOrganization($org_id, $org_description, $org_logo = null)
+    {
+        try {
+            if ($org_logo !== null) {
+                $query = "UPDATE " . $this->table . " 
+                          SET org_description = :org_description, org_logo = :org_logo, updated_at = NOW()
+                          WHERE org_id = :org_id";
+                $stmt = $this->conn->prepare($query);
+                $stmt->bindParam(':org_logo', $org_logo);
+            } else {
+                $query = "UPDATE " . $this->table . " 
+                          SET org_description = :org_description, updated_at = NOW()
+                          WHERE org_id = :org_id";
+                $stmt = $this->conn->prepare($query);
+            }
+            
+            $stmt->bindParam(':org_description', $org_description);
+            $stmt->bindParam(':org_id', $org_id);
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+            return false;
+        }
+    }
 }

@@ -24,6 +24,8 @@ CREATE TABLE IF NOT EXISTS `users` (
 CREATE TABLE IF NOT EXISTS `organizations` (
   `org_id` int(11) NOT NULL AUTO_INCREMENT,
   `org_name` varchar(255) NOT NULL,
+  `org_description` text DEFAULT NULL,
+  `org_logo` varchar(500) DEFAULT NULL,
   `president_id` int(11) DEFAULT NULL,
   `status` enum('active','inactive','pending','accredited') DEFAULT 'pending',
   `created_by` int(11) DEFAULT NULL,
