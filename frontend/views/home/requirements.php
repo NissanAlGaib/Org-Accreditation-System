@@ -322,6 +322,9 @@ if ($_SESSION['role_id'] == 1) {
         }
 
         function nextPage() {
+            const showAll = itemsPerPage === 'all';
+            if (showAll) return;
+            
             const totalPages = Math.ceil(allRequirements.length / parseInt(itemsPerPage));
             if (currentPage < totalPages) {
                 currentPage++;
