@@ -106,7 +106,7 @@ class User
     public function login($email, $password)
     {
         try {
-            $query = "SELECT user_id, role_id, first_name, last_name, email, password, status FROM " . $this->table . " WHERE email = :email";
+            $query = "SELECT user_id, role_id, org_id, first_name, last_name, email, password, status, must_change_password FROM " . $this->table . " WHERE email = :email";
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':email', $email);
             $stmt->execute();
@@ -121,6 +121,29 @@ class User
         } catch (PDOException $e) {
             error_log($e->getMessage());
             return null;
+        }
+    }
+    
+    public function changePassword($user_id, $new_password)
+    {
+        try {
+            $hashed_password = password_hash($new_password, PASSWORD_BCRYPT);
+            $query = "UPDATE " . $this->table . " 
+                      SET password = :password, must_change_password = 0, temp_password = NULL 
+                      WHERE user_id = :user_id";
+            
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':password', $hashed_password);
+            $stmt->bindParam(':user_id', $user_id);
+            
+            if ($stmt->execute()) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+            return false;
         }
     }
 }
