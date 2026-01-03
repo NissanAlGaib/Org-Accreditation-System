@@ -29,7 +29,7 @@ class AcademicYear
                       COUNT(d.document_id) as total_documents,
                       SUM(CASE WHEN d.status = 'verified' THEN 1 ELSE 0 END) as verified_count
                       FROM organizations o
-                      LEFT JOIN documents d ON o.org_id = d.org_id AND d.academic_year_id = :academic_year_id
+                      INNER JOIN documents d ON o.org_id = d.org_id AND d.academic_year_id = :academic_year_id
                       GROUP BY o.org_id, o.org_name, o.status
                       ORDER BY o.org_name";
             $stmt = $this->conn->prepare($query);
