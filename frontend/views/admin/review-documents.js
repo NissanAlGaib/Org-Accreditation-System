@@ -380,7 +380,7 @@ async function viewDocument(documentId) {
     try {
         const doc = allDocuments.find(d => d.document_id === documentId);
         if (!doc) {
-            alert('Document not found');
+            showError('Document not found');
             return;
         }
         
@@ -465,7 +465,7 @@ async function viewDocument(documentId) {
         }
     } catch (error) {
         console.error('Error viewing document:', error);
-        alert('Failed to load document viewer');
+        showError('Failed to load document viewer');
     }
 }
 
@@ -484,15 +484,27 @@ function closeReturnModal() {
 }
 
 async function updateStatus(documentId, status, remarks = null) {
+    // Show confirmation for verify action
+    if (status === 'verified' && !remarks) {
+        const confirmed = await showConfirm(
+            'Verify Document?',
+            'Are you sure you want to verify this document? This action confirms the document meets all requirements.'
+        );
+        
+        if (!confirmed) return;
+    }
+    
     try {
         const data = {
-            document_id: documentId,
+            document_id: parseInt(documentId),
             status: status
         };
         
         if (remarks) {
             data.remarks = remarks;
         }
+        
+        console.log('Sending update request:', data);
         
         const response = await fetch('/Org-Accreditation-System/backend/api/document_api.php', {
             method: 'PUT',
@@ -502,18 +514,33 @@ async function updateStatus(documentId, status, remarks = null) {
             body: JSON.stringify(data)
         });
         
-        if (!response.ok) throw new Error('Network error');
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Response error:', errorText);
+            throw new Error(`Network error: ${response.status}`);
+        }
+        
         const result = await response.json();
+        console.log('Response result:', result);
         
         if (result.status === 'success') {
-            alert('Document status updated successfully');
+            if (status === 'verified') {
+                showSuccess('Document verified successfully!');
+            } else if (status === 'returned') {
+                showSuccess('Document returned for revision. The organization will be notified.');
+            } else {
+                showSuccess('Document status updated successfully');
+            }
             await loadDocuments();
         } else {
-            alert('Error: ' + result.message);
+            console.error('Update failed:', result.message);
+            showError(result.message || 'Failed to update document status');
         }
     } catch (error) {
         console.error('Update Error:', error);
-        alert('An error occurred. Check console for details.');
+        showError('An error occurred while updating the document. Please try again.');
     }
 }
 

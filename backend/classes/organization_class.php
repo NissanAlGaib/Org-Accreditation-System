@@ -145,4 +145,121 @@ class Organization
             return [];
         }
     }
+
+    // ============================================
+    // Methods using Advanced SQL Features
+    // ============================================
+
+    /**
+     * Get organization dashboard using the SQL view
+     * @return array Organization dashboard data with compliance metrics
+     */
+    public function getOrganizationDashboard()
+    {
+        try {
+            $query = "SELECT * FROM vw_organization_dashboard ORDER BY org_name";
+            $stmt = $this->conn->prepare($query);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Get active organizations using the SQL view
+     * @return array Active organizations with contact info
+     */
+    public function getActiveOrganizations()
+    {
+        try {
+            $query = "SELECT * FROM vw_active_organizations";
+            $stmt = $this->conn->prepare($query);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Calculate compliance score for an organization using stored function
+     * @param int $org_id Organization ID
+     * @param int $academic_year_id Academic Year ID
+     * @return float Compliance score (0-100)
+     */
+    public function getComplianceScore($org_id, $academic_year_id)
+    {
+        try {
+            $query = "SELECT fn_calculate_compliance_score(:org_id, :academic_year_id) AS compliance_score";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':org_id', $org_id, PDO::PARAM_INT);
+            $stmt->bindParam(':academic_year_id', $academic_year_id, PDO::PARAM_INT);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ? floatval($result['compliance_score']) : 0.0;
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+            return 0.0;
+        }
+    }
+
+    /**
+     * Get accreditation status for an organization using stored function
+     * @param int $org_id Organization ID
+     * @param int $academic_year_id Academic Year ID
+     * @return string Accreditation status text
+     */
+    public function getAccreditationStatus($org_id, $academic_year_id)
+    {
+        try {
+            $query = "SELECT fn_get_accreditation_status(:org_id, :academic_year_id) AS accreditation_status";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':org_id', $org_id, PDO::PARAM_INT);
+            $stmt->bindParam(':academic_year_id', $academic_year_id, PDO::PARAM_INT);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ? $result['accreditation_status'] : 'Non-Compliant';
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+            return 'Non-Compliant';
+        }
+    }
+
+    /**
+     * Generate accreditation report using stored procedure
+     * @param int $org_id Organization ID
+     * @param int $academic_year_id Academic Year ID
+     * @return array Report data with two result sets
+     */
+    public function generateAccreditationReport($org_id, $academic_year_id)
+    {
+        try {
+            $query = "CALL sp_generate_accreditation_report(:org_id, :academic_year_id)";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':org_id', $org_id, PDO::PARAM_INT);
+            $stmt->bindParam(':academic_year_id', $academic_year_id, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            // Get organization summary (first result set)
+            $summary = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            // Move to next result set (requirements checklist)
+            $stmt->nextRowset();
+            $requirements = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            return [
+                'summary' => $summary,
+                'requirements' => $requirements
+            ];
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+            return [
+                'summary' => null,
+                'requirements' => []
+            ];
+        }
+    }
 }

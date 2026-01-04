@@ -42,4 +42,46 @@ class AcademicYear
             return [];
         }
     }
+
+    // ============================================
+    // Methods using Advanced SQL Features
+    // ============================================
+
+    /**
+     * Archive an academic year using stored procedure
+     * @param int $academic_year_id Academic Year ID to archive
+     * @return array Archive summary
+     */
+    public function archiveAcademicYear($academic_year_id)
+    {
+        try {
+            $query = "CALL sp_archive_academic_year(:academic_year_id)";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':academic_year_id', $academic_year_id, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ?: [];
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Get the active academic year
+     * @return array|null Active academic year data
+     */
+    public function getActiveAcademicYear()
+    {
+        try {
+            $query = "SELECT * FROM " . $this->table . " WHERE is_active = 1 LIMIT 1";
+            $stmt = $this->conn->prepare($query);
+            $stmt->execute();
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+            return null;
+        }
+    }
 }

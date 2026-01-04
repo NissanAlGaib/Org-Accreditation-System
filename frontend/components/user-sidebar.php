@@ -26,6 +26,12 @@ $menu_items = [
         'icon'   => $base_path . 'archive.png',
         'icon-active' => $base_path . 'archive-active.png'
     ],
+    [
+        'label' => 'Settings',
+        'link'  => 'settings.php',
+        'icon'   => $base_path . 'settings.png',
+        'icon-active' => $base_path . 'settings-active.png'
+    ],
 ];
 ?>
 <div id="sidebar" class="w-1/4 h-full bg-white rounded-xl p-10 px-8 dm-sans-semibold text-lg text-[#980000] flex flex-col justify-between border-[0.1px] border-black shadow-xl/20">

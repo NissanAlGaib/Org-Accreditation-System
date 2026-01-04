@@ -381,21 +381,22 @@ if ($_SESSION['role_id'] == 1) {
                 const result = await response.json();
 
                 if (result.status === 'success') {
-                    alert('Organization updated successfully!');
+                    showSuccess('Organization updated successfully!');
                     closeEditModal();
                     loadOrganizationData(); // Reload data
                 } else {
-                    alert('Error: ' + result.message);
+                    showError(result.message);
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('Failed to update organization.');
+                showError('Failed to update organization');
             } finally {
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Save Changes';
             }
         });
     </script>
+    <?php include_once '../../components/modal.php'; ?>
 </body>
 
 </html>

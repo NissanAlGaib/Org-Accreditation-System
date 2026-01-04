@@ -44,10 +44,44 @@ if (!isset($_SESSION['user_id'])) {
                 </div>
             </div>
             <div class="flex flex-col w-full min-h-60 bg-white rounded-xl border-[0.1px] border-black shadow-xl/20 p-7 gap-4">
-                <div>
-                    <p class="manrope-bold text-xl">Registered Organizations</p>
-                    <p class="text-sm">All organizations and their president accounts</p>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="manrope-bold text-xl">Registered Organizations</p>
+                        <p class="text-sm">All organizations and their president accounts</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <!-- Items per page selector -->
+                        <div class="flex items-center gap-2">
+                            <label class="text-sm text-gray-600">Show:</label>
+                            <select id="itemsPerPageSelect" onchange="handleItemsPerPageChange()" 
+                                    class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#940505] focus:border-[#940505] outline-none text-sm">
+                                <option value="10" selected>10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+                        <!-- Search Box -->
+                        <div class="relative">
+                            <input type="text" id="searchInput" placeholder="Search organizations..." 
+                                   class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#940505] focus:border-[#940505] outline-none text-sm"
+                                   oninput="handleSearch()">
+                            <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                        <!-- Status Filter -->
+                        <select id="statusFilter" onchange="handleFilter()" 
+                                class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#940505] focus:border-[#940505] outline-none text-sm">
+                            <option value="">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="active">Active</option>
+                            <option value="accredited">Accredited</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
                 </div>
+                
                 <div>
                     <div class="overflow-x-auto bg-white  rounded-lg">
                         <table class="w-full text-sm text-left text-gray-600">
@@ -73,10 +107,13 @@ if (!isset($_SESSION['user_id'])) {
                             </tbody>
                         </table>
                     </div>
+                    
+                    <!-- Pagination Controls -->
+                    <div id="paginationControls"></div>
                 </div>
             </div>
         </div>
-
+    <?php include_once '../../components/modal.php'; ?>
 </body>
 <div id="createAccountModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50 flex items-center justify-center backdrop-blur-sm">
 

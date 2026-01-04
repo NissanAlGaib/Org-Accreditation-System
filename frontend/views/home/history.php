@@ -359,7 +359,7 @@ if ($_SESSION['role_id'] == 1) {
             if (documentId) {
                 window.open(`/Org-Accreditation-System/frontend/views/common/view-document.php?id=${documentId}`, '_blank', 'width=1200,height=800');
             } else {
-                alert('Document not available');
+                showInfo('Document not available');
             }
         }
 
@@ -369,6 +369,7 @@ if ($_SESSION['role_id'] == 1) {
             return div.innerHTML;
         }
     </script>
+    <?php include_once '../../components/modal.php'; ?>
 </body>
 
 </html>
