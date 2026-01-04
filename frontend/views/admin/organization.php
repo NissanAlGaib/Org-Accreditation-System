@@ -61,6 +61,9 @@ if (!isset($_SESSION['user_id'])) {
                         </tbody>
                     </table>
                 </div>
+                
+                <!-- Pagination Controls -->
+                <div id="paginationControls"></div>
             </div>
         </div>
     </div>

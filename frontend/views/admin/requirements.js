@@ -10,6 +10,11 @@ const requirementDescInput = document.getElementById('requirementDesc');
 
 let isEditMode = false;
 
+// Pagination state
+let currentPage = 1;
+const itemsPerPage = 10;
+let allRequirements = [];
+
 // Load requirements on page load
 document.addEventListener('DOMContentLoaded', async () => {
     await loadRequirements();
@@ -27,66 +32,11 @@ async function loadRequirements() {
         const result = await response.json();
         
         if (result.status === 'success' && result.data) {
-            const requirements = result.data;
+            allRequirements = result.data;
+            displayPage(currentPage);
             
-            if (requirements.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="px-6 py-8 text-center text-gray-500">
-                            No requirements added yet
-                        </td>
-                    </tr>
-                `;
-            } else {
-                tbody.innerHTML = requirements.map(req => {
-                    const createdDate = req.created_at ? new Date(req.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
-                    return `
-                        <tr class="hover:bg-gray-50 transition-colors duration-200">
-                            <td class="px-6 py-4 font-medium text-gray-900">
-                                <div class="flex items-center gap-3">
-                                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                    </svg>
-                                    ${escapeHtml(req.requirement_name)}
-                                </div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded text-xs font-semibold">
-                                    ${escapeHtml(req.requirement_type)}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 max-w-xs truncate">
-                                ${escapeHtml(req.description || '-')}
-                            </td>
-                            <td class="px-6 py-4 text-gray-500">
-                                ${escapeHtml((req.first_name || '') + ' ' + (req.last_name || ''))}
-                            </td>
-                            <td class="px-6 py-4 text-gray-500">
-                                ${createdDate}
-                            </td>
-                            <td class="px-6 py-4 text-center">
-                                <div class="flex items-center justify-center gap-3">
-                                    <button onclick='editRequirement(${JSON.stringify(req)})' 
-                                            class="text-blue-600 hover:text-blue-800 transition-colors" 
-                                            title="Edit">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                        </svg>
-                                    </button>
-                                    <button onclick="deleteRequirement(${req.requirement_id})" 
-                                            class="text-red-500 hover:text-red-700 transition-colors" 
-                                            title="Delete">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-            }
         } else {
+            const tbody = document.getElementById('requirementsTableBody');
             tbody.innerHTML = `
                 <tr>
                     <td colspan="6" class="px-6 py-8 text-center text-red-500">
@@ -97,6 +47,7 @@ async function loadRequirements() {
         }
     } catch (error) {
         console.error('Error loading requirements:', error);
+        const tbody = document.getElementById('requirementsTableBody');
         tbody.innerHTML = `
             <tr>
                 <td colspan="6" class="px-6 py-8 text-center text-red-500">
@@ -105,6 +56,167 @@ async function loadRequirements() {
             </tr>
         `;
     }
+}
+
+function displayPage(page) {
+    const tbody = document.getElementById('requirementsTableBody');
+    const requirements = allRequirements;
+    
+    if (requirements.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                    No requirements added yet
+                </td>
+            </tr>
+        `;
+        updatePaginationControls(0);
+        return;
+    }
+    
+    // Calculate pagination
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedReqs = requirements.slice(startIndex, endIndex);
+    
+    // Render table rows
+    tbody.innerHTML = paginatedReqs.map(req => {
+        const createdDate = req.created_at ? new Date(req.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
+        return `
+            <tr class="hover:bg-gray-50 transition-colors duration-200">
+                <td class="px-6 py-4 font-medium text-gray-900">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        ${escapeHtml(req.requirement_name)}
+                    </div>
+                </td>
+                <td class="px-6 py-4">
+                    <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded text-xs font-semibold">
+                        ${escapeHtml(req.requirement_type)}
+                    </span>
+                </td>
+                <td class="px-6 py-4 max-w-xs truncate">
+                    ${escapeHtml(req.description || '-')}
+                </td>
+                <td class="px-6 py-4 text-gray-500">
+                    ${escapeHtml((req.first_name || '') + ' ' + (req.last_name || ''))}
+                </td>
+                <td class="px-6 py-4 text-gray-500">
+                    ${createdDate}
+                </td>
+                <td class="px-6 py-4 text-center">
+                    <div class="flex items-center justify-center gap-3">
+                        <button onclick='editRequirement(${JSON.stringify(req)})' 
+                                class="text-blue-600 hover:text-blue-800 transition-colors" 
+                                title="Edit">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                        </button>
+                        <button onclick="deleteRequirement(${req.requirement_id})" 
+                                class="text-red-500 hover:text-red-700 transition-colors" 
+                                title="Delete">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+    
+    // Update pagination controls
+    updatePaginationControls(requirements.length);
+}
+
+function updatePaginationControls(totalItems) {
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const paginationContainer = document.getElementById('paginationControls');
+    
+    if (!paginationContainer || totalPages <= 1) {
+        if (paginationContainer) paginationContainer.innerHTML = '';
+        return;
+    }
+    
+    let paginationHTML = `
+        <div class="flex items-center justify-between mt-6">
+            <div class="text-sm text-gray-600">
+                Showing ${totalItems > 0 ? ((currentPage - 1) * itemsPerPage + 1) : 0} to ${Math.min(currentPage * itemsPerPage, totalItems)} of ${totalItems} requirements
+            </div>
+            <div class="flex gap-2">
+    `;
+    
+    // Previous button
+    paginationHTML += `
+        <button onclick="changePage(${currentPage - 1})" 
+                ${currentPage === 1 ? 'disabled' : ''}
+                class="px-4 py-2 text-sm font-medium rounded-lg transition-colors ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}">
+            Previous
+        </button>
+    `;
+    
+    // Page numbers
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage < maxVisiblePages - 1) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    if (startPage > 1) {
+        paginationHTML += `
+            <button onclick="changePage(1)" class="px-4 py-2 text-sm font-medium rounded-lg bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors">1</button>
+        `;
+        if (startPage > 2) {
+            paginationHTML += `<span class="px-3 py-2 text-gray-500">...</span>`;
+        }
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        paginationHTML += `
+            <button onclick="changePage(${i})" 
+                    class="px-4 py-2 text-sm font-medium rounded-lg transition-colors ${i === currentPage ? 'bg-[#940505] text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}">
+                ${i}
+            </button>
+        `;
+    }
+    
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            paginationHTML += `<span class="px-3 py-2 text-gray-500">...</span>`;
+        }
+        paginationHTML += `
+            <button onclick="changePage(${totalPages})" class="px-4 py-2 text-sm font-medium rounded-lg bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors">${totalPages}</button>
+        `;
+    }
+    
+    // Next button
+    paginationHTML += `
+        <button onclick="changePage(${currentPage + 1})" 
+                ${currentPage === totalPages ? 'disabled' : ''}
+                class="px-4 py-2 text-sm font-medium rounded-lg transition-colors ${currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}">
+            Next
+        </button>
+    `;
+    
+    paginationHTML += `
+            </div>
+        </div>
+    `;
+    
+    paginationContainer.innerHTML = paginationHTML;
+}
+
+function changePage(page) {
+    const totalPages = Math.ceil(allRequirements.length / itemsPerPage);
+    if (page < 1 || page > totalPages) return;
+    
+    currentPage = page;
+    displayPage(currentPage);
 }
 
 function escapeHtml(text) {
