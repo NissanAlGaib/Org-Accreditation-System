@@ -430,7 +430,12 @@ if ($_SESSION['role_id'] == 1) {
                     return;
                 }
 
-                if (!confirm(`Upload "${file.name}" for ${requirementName}?`)) {
+                // Show confirmation modal before upload
+                const confirmed = await showConfirm(
+                    `Upload "${file.name}" for ${requirementName}?`,
+                    'This document will be submitted for review.'
+                );
+                if (!confirmed) {
                     return;
                 }
 
@@ -452,21 +457,19 @@ if ($_SESSION['role_id'] == 1) {
                     });
                     
                     const result = await response.json();
+                    uploadStatus.remove(); // Remove loading indicator
+                    
                     if (result.status === 'success') {
-                        uploadStatus.className = 'fixed top-20 right-4 bg-green-500 text-white px-6 py-3 rounded-md shadow-lg';
-                        uploadStatus.textContent = 'Document uploaded successfully!';
+                        await showSuccess('Document uploaded successfully! It will be reviewed by administrators.');
                         loadRequirements(); // Reload requirements to update status
                         loadSubmittedDocuments();
                     } else {
-                        uploadStatus.className = 'fixed top-20 right-4 bg-red-500 text-white px-6 py-3 rounded-md shadow-lg';
-                        uploadStatus.textContent = 'Upload failed: ' + result.message;
+                        await showError('Upload failed: ' + result.message);
                     }
                 } catch (error) {
                     console.error('Upload error:', error);
-                    uploadStatus.className = 'fixed top-20 right-4 bg-red-500 text-white px-6 py-3 rounded-md shadow-lg';
-                    uploadStatus.textContent = 'Upload failed. Please try again.';
-                } finally {
-                    setTimeout(() => uploadStatus.remove(), 3000);
+                    uploadStatus.remove();
+                    await showError('Upload failed. Please try again.');
                 }
             };
 

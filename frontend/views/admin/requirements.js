@@ -317,15 +317,15 @@ form.addEventListener('submit', async (e) => {
         const result = await response.json();
         
         if (result.status === 'success') {
-            alert(isEditMode ? 'Requirement updated successfully' : 'Requirement created successfully');
+            await showSuccess(isEditMode ? 'Requirement updated successfully!' : 'Requirement created successfully!');
             await loadRequirements();
             closeModal();
         } else {
-            alert('Error: ' + result.message);
+            await showError('Error: ' + result.message);
         }
     } catch (error) {
         console.error('Submission Error:', error);
-        alert('An error occurred. Check console for details.');
+        await showError('An error occurred. Please try again.');
     } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = originalBtnText;
@@ -333,7 +333,11 @@ form.addEventListener('submit', async (e) => {
 });
 
 async function deleteRequirement(requirementId) {
-    if (!confirm('Are you sure you want to delete this requirement?')) {
+    const confirmed = await showConfirm(
+        'Delete this requirement?',
+        'This action cannot be undone. All associated documents may be affected.'
+    );
+    if (!confirmed) {
         return;
     }
     
