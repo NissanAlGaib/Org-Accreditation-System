@@ -31,7 +31,8 @@ async function loadDocuments() {
                     const verified = org.verified_count || 0;
                     const pending = org.pending_count || 0;
                     const returned = org.returned_count || 0;
-                    const progress = total > 0 ? Math.round((verified / total) * 100) : 0;
+                    const totalRequirements = org.total_requirements || 1;
+                    const progress = Math.round((verified / totalRequirements) * 100);
                     
                     return `
                         <tr class="hover:bg-gray-50 transition-colors duration-200">

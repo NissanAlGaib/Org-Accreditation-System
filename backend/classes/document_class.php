@@ -34,7 +34,8 @@ class Document
                       COUNT(d.document_id) as total_documents,
                       SUM(CASE WHEN d.status = 'verified' THEN 1 ELSE 0 END) as verified_count,
                       SUM(CASE WHEN d.status = 'pending' THEN 1 ELSE 0 END) as pending_count,
-                      SUM(CASE WHEN d.status = 'returned' THEN 1 ELSE 0 END) as returned_count
+                      SUM(CASE WHEN d.status = 'returned' THEN 1 ELSE 0 END) as returned_count,
+                      (SELECT COUNT(*) FROM requirements WHERE is_active = 1) as total_requirements
                       FROM organizations o
                       LEFT JOIN " . $this->table . " d ON o.org_id = d.org_id
                       GROUP BY o.org_id, o.org_name

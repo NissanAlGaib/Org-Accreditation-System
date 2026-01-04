@@ -112,7 +112,8 @@ async function loadArchiveData(yearId) {
                 tbody.innerHTML = archive.map(org => {
                     const total = org.total_documents || 0;
                     const verified = org.verified_count || 0;
-                    const completion = total > 0 ? Math.round((verified / total) * 100) : 0;
+                    const totalRequirements = org.total_requirements || 1;
+                    const completion = Math.round((verified / totalRequirements) * 100);
                     
                     const status = org.status || 'pending';
                     const statusColors = {
