@@ -116,9 +116,7 @@ INSERT INTO `requirements` (`requirement_name`, `requirement_type`, `description
 
 -- INDEXES for Performance Optimization
 -- These indexes improve query performance on frequently searched columns
-
--- Index on users table for faster email lookup during login
-CREATE INDEX idx_users_email ON users(email);
+-- Note: email field already has a UNIQUE constraint which creates an index automatically
 
 -- Index on users table for faster filtering by status and role
 CREATE INDEX idx_users_status_role ON users(status, role_id);
@@ -426,6 +424,19 @@ CREATE TABLE IF NOT EXISTS `document_audit_log` (
     KEY `idx_change_timestamp` (`change_timestamp`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Create table for logging deletion attempts
+CREATE TABLE IF NOT EXISTS `document_deletion_attempts` (
+    `attempt_id` INT(11) NOT NULL AUTO_INCREMENT,
+    `document_id` INT(11) NOT NULL,
+    `document_status` VARCHAR(20),
+    `org_id` INT(11),
+    `file_name` VARCHAR(255),
+    `attempt_timestamp` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`attempt_id`),
+    KEY `idx_document_id` (`document_id`),
+    KEY `idx_attempt_timestamp` (`attempt_timestamp`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 DELIMITER $$
 CREATE TRIGGER trg_log_document_status_change
 AFTER UPDATE ON documents
@@ -446,6 +457,11 @@ BEFORE DELETE ON documents
 FOR EACH ROW
 BEGIN
     IF OLD.status = 'verified' THEN
+        -- Log the deletion attempt
+        INSERT INTO document_deletion_attempts (document_id, document_status, org_id, file_name)
+        VALUES (OLD.document_id, OLD.status, OLD.org_id, OLD.file_name);
+        
+        -- Prevent the deletion
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Cannot delete verified documents. Please return or archive instead.';
     END IF;
