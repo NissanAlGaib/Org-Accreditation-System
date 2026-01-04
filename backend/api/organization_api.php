@@ -37,15 +37,39 @@ switch ($method) {
             echo json_encode(["status" => "success", "data" => $active_orgs]);
         } elseif (isset($_GET['compliance_score']) && isset($_GET['org_id']) && isset($_GET['academic_year_id'])) {
             // Use the stored function for compliance score
-            $score = $organization->getComplianceScore($_GET['org_id'], $_GET['academic_year_id']);
+            $org_id = filter_var($_GET['org_id'], FILTER_VALIDATE_INT);
+            $academic_year_id = filter_var($_GET['academic_year_id'], FILTER_VALIDATE_INT);
+            
+            if ($org_id === false || $org_id <= 0 || $academic_year_id === false || $academic_year_id <= 0) {
+                echo json_encode(["status" => "error", "message" => "Invalid parameters"]);
+                break;
+            }
+            
+            $score = $organization->getComplianceScore($org_id, $academic_year_id);
             echo json_encode(["status" => "success", "compliance_score" => $score]);
         } elseif (isset($_GET['accreditation_status']) && isset($_GET['org_id']) && isset($_GET['academic_year_id'])) {
             // Use the stored function for accreditation status
-            $status = $organization->getAccreditationStatus($_GET['org_id'], $_GET['academic_year_id']);
+            $org_id = filter_var($_GET['org_id'], FILTER_VALIDATE_INT);
+            $academic_year_id = filter_var($_GET['academic_year_id'], FILTER_VALIDATE_INT);
+            
+            if ($org_id === false || $org_id <= 0 || $academic_year_id === false || $academic_year_id <= 0) {
+                echo json_encode(["status" => "error", "message" => "Invalid parameters"]);
+                break;
+            }
+            
+            $status = $organization->getAccreditationStatus($org_id, $academic_year_id);
             echo json_encode(["status" => "success", "accreditation_status" => $status]);
         } elseif (isset($_GET['accreditation_report']) && isset($_GET['org_id']) && isset($_GET['academic_year_id'])) {
             // Use the stored procedure for accreditation report
-            $report = $organization->generateAccreditationReport($_GET['org_id'], $_GET['academic_year_id']);
+            $org_id = filter_var($_GET['org_id'], FILTER_VALIDATE_INT);
+            $academic_year_id = filter_var($_GET['academic_year_id'], FILTER_VALIDATE_INT);
+            
+            if ($org_id === false || $org_id <= 0 || $academic_year_id === false || $academic_year_id <= 0) {
+                echo json_encode(["status" => "error", "message" => "Invalid parameters"]);
+                break;
+            }
+            
+            $report = $organization->generateAccreditationReport($org_id, $academic_year_id);
             echo json_encode(["status" => "success", "data" => $report]);
         } elseif (isset($_GET['org_id'])) {
             $org_data = $organization->getOrganizationById($_GET['org_id']);

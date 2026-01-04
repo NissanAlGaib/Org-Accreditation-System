@@ -38,7 +38,14 @@ switch ($method) {
             echo json_encode(["status" => "success", "data" => $queue]);
         } elseif (isset($_GET['audit_log'])) {
             // Get document audit log
-            $document_id = isset($_GET['document_id']) ? intval($_GET['document_id']) : null;
+            $document_id = null;
+            if (isset($_GET['document_id'])) {
+                $document_id = filter_var($_GET['document_id'], FILTER_VALIDATE_INT);
+                if ($document_id === false || $document_id <= 0) {
+                    echo json_encode(["status" => "error", "message" => "Invalid document_id"]);
+                    break;
+                }
+            }
             $audit_log = $document->getDocumentAuditLog($document_id);
             echo json_encode(["status" => "success", "data" => $audit_log]);
         } elseif (isset($_GET['deletion_attempts'])) {
@@ -60,12 +67,27 @@ switch ($method) {
         if (isset($data->bulk_update) && $data->bulk_update === true) {
             // Use stored procedure for bulk update
             if (!empty($data->org_id) && !empty($data->requirement_id) && !empty($data->status)) {
+                // Validate inputs
+                $org_id = filter_var($data->org_id, FILTER_VALIDATE_INT);
+                $requirement_id = filter_var($data->requirement_id, FILTER_VALIDATE_INT);
+                $allowed_statuses = ['pending', 'verified', 'returned'];
+                
+                if ($org_id === false || $org_id <= 0 || $requirement_id === false || $requirement_id <= 0) {
+                    echo json_encode(["status" => "error", "message" => "Invalid org_id or requirement_id"]);
+                    break;
+                }
+                
+                if (!in_array($data->status, $allowed_statuses)) {
+                    echo json_encode(["status" => "error", "message" => "Invalid status value"]);
+                    break;
+                }
+                
                 $reviewed_by = $_SESSION['user_id'] ?? 1;
                 $remarks = isset($data->remarks) ? $data->remarks : null;
                 
                 $updated_count = $document->bulkUpdateDocumentStatus(
-                    $data->org_id, 
-                    $data->requirement_id, 
+                    $org_id, 
+                    $requirement_id, 
                     $data->status, 
                     $reviewed_by, 
                     $remarks

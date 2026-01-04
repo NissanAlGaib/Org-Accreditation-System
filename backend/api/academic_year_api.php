@@ -43,8 +43,16 @@ switch ($method) {
         }
 
         if (isset($data->action) && $data->action === 'archive' && !empty($data->academic_year_id)) {
+            // Validate academic_year_id
+            $academic_year_id = filter_var($data->academic_year_id, FILTER_VALIDATE_INT);
+            
+            if ($academic_year_id === false || $academic_year_id <= 0) {
+                echo json_encode(["status" => "error", "message" => "Invalid academic_year_id"]);
+                break;
+            }
+            
             // Use stored procedure to archive academic year
-            $archive_summary = $academicYear->archiveAcademicYear($data->academic_year_id);
+            $archive_summary = $academicYear->archiveAcademicYear($academic_year_id);
             if ($archive_summary) {
                 echo json_encode([
                     "status" => "success", 
