@@ -5,33 +5,6 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: /Org-Accreditation-System/frontend/views/auth/login.php");
     exit();
 }
-
-$dashboard_items = [
-    [
-        'title' => 'Total Organizations',
-        'value' => 25,
-        'change' => '+5 from last year',
-        'change_color' => 'text-green-500',
-    ],
-    [
-        'title' => 'Pending Requirements',
-        'value' => 10,
-        'change' => '-2 from last month',
-        'change_color' => 'text-orange-500',
-    ],
-    [
-        'title' => 'Fully Accredited',
-        'value' => 15,
-        'change' => '44% completion rate',
-        'change_color' => 'text-green-500',
-    ],
-    [
-        'title' => 'Needs Attention',
-        'value' => 5,
-        'change' => 'Revisions requested',
-        'change_color' => 'text-red-500',
-    ]
-]
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -48,6 +21,63 @@ $dashboard_items = [
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
+    <script>
+        // Load dashboard data on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadDashboardData();
+        });
+
+        async function loadDashboardData() {
+            try {
+                // Fetch organizations data
+                const orgResponse = await fetch('/Org-Accreditation-System/backend/api/organization_api.php');
+                const orgResult = await orgResponse.json();
+                
+                // Fetch requirements data
+                const reqResponse = await fetch('/Org-Accreditation-System/backend/api/requirement_api.php');
+                const reqResult = await reqResponse.json();
+                
+                if (orgResult.status === 'success' && reqResult.status === 'success') {
+                    const organizations = orgResult.data || [];
+                    const requirements = reqResult.data || [];
+                    const totalRequirements = requirements.filter(r => r.is_active == 1).length;
+                    
+                    // Calculate stats
+                    let totalOrgs = organizations.length;
+                    let fullyAccredited = 0;
+                    let needsAttention = 0;
+                    let totalPending = 0;
+                    
+                    organizations.forEach(org => {
+                        const verified = parseInt(org.verified_documents) || 0;
+                        const pending = parseInt(org.pending_documents) || 0;
+                        const returned = parseInt(org.returned_documents) || 0;
+                        
+                        totalPending += pending;
+                        
+                        if (verified >= totalRequirements && totalRequirements > 0) {
+                            fullyAccredited++;
+                        }
+                        
+                        if (returned > 0) {
+                            needsAttention++;
+                        }
+                    });
+                    
+                    const completionRate = totalOrgs > 0 ? Math.round((fullyAccredited / totalOrgs) * 100) : 0;
+                    
+                    // Update dashboard cards
+                    document.getElementById('totalOrgs').textContent = totalOrgs;
+                    document.getElementById('pendingReqs').textContent = totalPending;
+                    document.getElementById('fullyAccredited').textContent = fullyAccredited;
+                    document.getElementById('fullyAccreditedRate').textContent = `${completionRate}% completion rate`;
+                    document.getElementById('needsAttention').textContent = needsAttention;
+                }
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+    </script>
 </head>
 
 <body class="bg-[#F1ECEC] h-screen">
@@ -60,17 +90,42 @@ $dashboard_items = [
                 <p class="text-md">Track all school organizations accreditation progress for S.Y. 2025-2026</p> <!--Academic Year should be fetched from db-->
             </div>
             <div class="flex gap-5">
-                <?php foreach ($dashboard_items as $item): ?>
-                    <div class="flex-1 w-full h-40 bg-white rounded-xl border-[0.1px] border-black shadow-xl/20">
-                        <div class="px-7 w-full h-full flex flex-col justify-center gap-3">
-                            <p class="dm-sans-semibold text-xl"><?php echo $item['title']; ?></p>
-                            <div>
-                                <p class="dm-sans-bold text-4xl <?php echo $item['change_color']; ?>"><?php echo $item['value']; ?></p>
-                                <p class="<?php echo $item['change_color']; ?>"><?php echo $item['change']; ?></p>
-                            </div>
+                <div class="flex-1 w-full h-40 bg-white rounded-xl border-[0.1px] border-black shadow-xl/20">
+                    <div class="px-7 w-full h-full flex flex-col justify-center gap-3">
+                        <p class="dm-sans-semibold text-xl">Total Organizations</p>
+                        <div>
+                            <p class="dm-sans-bold text-4xl text-green-500" id="totalOrgs">0</p>
+                            <p class="text-green-500">Registered organizations</p>
                         </div>
                     </div>
-                <?php endforeach; ?>
+                </div>
+                <div class="flex-1 w-full h-40 bg-white rounded-xl border-[0.1px] border-black shadow-xl/20">
+                    <div class="px-7 w-full h-full flex flex-col justify-center gap-3">
+                        <p class="dm-sans-semibold text-xl">Pending Requirements</p>
+                        <div>
+                            <p class="dm-sans-bold text-4xl text-orange-500" id="pendingReqs">0</p>
+                            <p class="text-orange-500">Documents awaiting review</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-1 w-full h-40 bg-white rounded-xl border-[0.1px] border-black shadow-xl/20">
+                    <div class="px-7 w-full h-full flex flex-col justify-center gap-3">
+                        <p class="dm-sans-semibold text-xl">Fully Accredited</p>
+                        <div>
+                            <p class="dm-sans-bold text-4xl text-green-500" id="fullyAccredited">0</p>
+                            <p class="text-green-500" id="fullyAccreditedRate">0% completion rate</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-1 w-full h-40 bg-white rounded-xl border-[0.1px] border-black shadow-xl/20">
+                    <div class="px-7 w-full h-full flex flex-col justify-center gap-3">
+                        <p class="dm-sans-semibold text-xl">Needs Attention</p>
+                        <div>
+                            <p class="dm-sans-bold text-4xl text-red-500" id="needsAttention">0</p>
+                            <p class="text-red-500">Revisions requested</p>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="flex-1 w-full h-50 bg-white rounded-xl border-[0.1px] border-black shadow-xl/20">
                 <div class="p-7 w-full h-full flex flex-col">

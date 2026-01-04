@@ -48,12 +48,13 @@ if (!isset($_SESSION['user_id'])) {
                                 <th scope="col" class="px-6 py-4 font-semibold text-center">Verified</th>
                                 <th scope="col" class="px-6 py-4 font-semibold text-center">Pending</th>
                                 <th scope="col" class="px-6 py-4 font-semibold text-center">Returned</th>
+                                <th scope="col" class="px-6 py-4 font-semibold text-center">Completion Rate</th>
                                 <th scope="col" class="px-6 py-4 font-semibold">Status</th>
                             </tr>
                         </thead>
                         <tbody id="organizationsTableBody" class="divide-y divide-gray-200">
                             <tr>
-                                <td colspan="8" class="px-6 py-8 text-center text-gray-500">
+                                <td colspan="9" class="px-6 py-8 text-center text-gray-500">
                                     Loading organizations...
                                 </td>
                             </tr>

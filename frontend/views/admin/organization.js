@@ -7,20 +7,28 @@ async function loadOrganizations() {
     const tbody = document.getElementById('organizationsTableBody');
     
     try {
-        const response = await fetch('/Org-Accreditation-System/backend/api/organization_api.php', {
+        // Fetch organizations data
+        const orgResponse = await fetch('/Org-Accreditation-System/backend/api/organization_api.php', {
             method: 'GET'
         });
         
-        if (!response.ok) throw new Error('Network error');
-        const result = await response.json();
+        if (!orgResponse.ok) throw new Error('Network error');
+        const orgResult = await orgResponse.json();
         
-        if (result.status === 'success' && result.data) {
-            const organizations = result.data;
+        // Fetch requirements data to get total count
+        const reqResponse = await fetch('/Org-Accreditation-System/backend/api/requirement_api.php');
+        const reqResult = await reqResponse.json();
+        
+        const totalRequirements = reqResult.status === 'success' ? 
+            (reqResult.data || []).filter(r => r.is_active == 1).length : 0;
+        
+        if (orgResult.status === 'success' && orgResult.data) {
+            const organizations = orgResult.data;
             
             if (organizations.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="8" class="px-6 py-8 text-center text-gray-500">
+                        <td colspan="9" class="px-6 py-8 text-center text-gray-500">
                             No organizations registered yet
                         </td>
                     </tr>
@@ -35,6 +43,18 @@ async function loadOrganizations() {
                     };
                     const status = org.status || 'pending';
                     const statusColor = statusColors[status] || 'bg-gray-500 text-white';
+                    
+                    // Calculate completion rate based on verified documents vs total requirements
+                    const verifiedDocs = parseInt(org.verified_documents) || 0;
+                    const completionRate = totalRequirements > 0 ? Math.round((verifiedDocs / totalRequirements) * 100) : 0;
+                    
+                    // Color code the progress bar
+                    let progressBarColor = 'bg-red-500'; // <40%
+                    if (completionRate >= 80) {
+                        progressBarColor = 'bg-green-500';
+                    } else if (completionRate >= 40) {
+                        progressBarColor = 'bg-yellow-500';
+                    }
                     
                     return `
                         <tr class="hover:bg-gray-50 transition-colors duration-200">
@@ -79,6 +99,14 @@ async function loadOrganizations() {
                                     ${org.returned_documents || 0}
                                 </span>
                             </td>
+                            <td class="px-6 py-4">
+                                <div class="flex flex-col gap-1">
+                                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                        <div class="${progressBarColor} h-2.5 rounded-full" style="width: ${completionRate}%"></div>
+                                    </div>
+                                    <span class="text-xs text-gray-600 text-center">${completionRate}% (${verifiedDocs}/${totalRequirements})</span>
+                                </div>
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="${statusColor} text-xs font-semibold px-3 py-1 rounded-full">
                                     ${capitalize(status)}
@@ -91,8 +119,8 @@ async function loadOrganizations() {
         } else {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="8" class="px-6 py-8 text-center text-red-500">
-                        Error loading organizations: ${result.message || 'Unknown error'}
+                    <td colspan="9" class="px-6 py-8 text-center text-red-500">
+                        Error loading organizations: ${orgResult.message || 'Unknown error'}
                     </td>
                 </tr>
             `;
@@ -101,7 +129,7 @@ async function loadOrganizations() {
         console.error('Error loading organizations:', error);
         tbody.innerHTML = `
             <tr>
-                <td colspan="8" class="px-6 py-8 text-center text-red-500">
+                <td colspan="9" class="px-6 py-8 text-center text-red-500">
                     Failed to load organizations. Please try again.
                 </td>
             </tr>
