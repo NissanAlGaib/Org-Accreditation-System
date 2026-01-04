@@ -12,10 +12,18 @@ class Document
     public function getDocumentsByOrganization($org_id)
     {
         try {
+            // Get only the latest submission for each requirement to avoid showing old returned documents
             $query = "SELECT d.*, r.requirement_name, r.requirement_type
                       FROM " . $this->table . " d
                       LEFT JOIN requirements r ON d.requirement_id = r.requirement_id
                       WHERE d.org_id = :org_id
+                      AND d.document_id IN (
+                          SELECT MAX(d2.document_id)
+                          FROM " . $this->table . " d2
+                          WHERE d2.org_id = d.org_id
+                          AND d2.requirement_id = d.requirement_id
+                          GROUP BY d2.requirement_id
+                      )
                       ORDER BY d.submitted_at DESC";
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':org_id', $org_id);
