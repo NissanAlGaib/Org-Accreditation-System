@@ -25,6 +25,7 @@ if (!isset($_SESSION['user_id'])) {
         // Load dashboard data on page load
         document.addEventListener('DOMContentLoaded', async () => {
             await loadDashboardData();
+            await loadRecentSubmissions();
         });
 
         async function loadDashboardData() {
@@ -76,6 +77,63 @@ if (!isset($_SESSION['user_id'])) {
             } catch (error) {
                 console.error('Error loading dashboard data:', error);
             }
+        }
+
+        async function loadRecentSubmissions() {
+            try {
+                const response = await fetch('/Org-Accreditation-System/backend/api/document_api.php?recent=true&limit=5');
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    const submissions = result.data || [];
+                    const container = document.getElementById('recentSubmissionsContainer');
+                    
+                    if (submissions.length === 0) {
+                        container.innerHTML = '<div class="p-5 text-center text-gray-500">No recent submissions</div>';
+                    } else {
+                        container.innerHTML = submissions.map(sub => {
+                            const timeAgo = getTimeAgo(new Date(sub.submitted_at));
+                            return `
+                                <div class="border border-gray-400 w-full rounded-2xl mb-3">
+                                    <div class="p-5 px-8 flex justify-between">
+                                        <div>
+                                            <p class="dm-sans-bold text-xl">${escapeHtml(sub.org_name)}</p>
+                                            <p class="text-md">${escapeHtml(sub.requirement_name)}</p>
+                                            <p class="text-sm text-gray-500">${timeAgo}</p>
+                                        </div>
+                                        <div class="flex justify-center items-center">
+                                            <a href="/Org-Accreditation-System/frontend/views/admin/review-documents.php?org_id=${sub.document_id}" 
+                                               class="bg-[#940505] text-white hover:text-[#940505] px-8 py-2 rounded-lg hover:bg-white border hover:border-black ease-in-out duration-300">
+                                               Review
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading recent submissions:', error);
+                document.getElementById('recentSubmissionsContainer').innerHTML = 
+                    '<div class="p-5 text-center text-red-500">Error loading recent submissions</div>';
+            }
+        }
+
+        function getTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            
+            if (seconds < 60) return 'Just now';
+            if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
+            if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`;
+            return date.toLocaleDateString();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
     </script>
 </head>
@@ -133,19 +191,8 @@ if (!isset($_SESSION['user_id'])) {
                         <p class="dm-sans-bold text-2xl">Recent Submissions</p>
                         <p class="">Latest document submissions requiring review</p>
                     </div>
-                    <div>
-                        <div class="border border-gray-400 w-full h-30 rounded-2xl">
-                            <div class="p-5 px-8 flex justify-between">
-                                <div>
-                                    <p class="dm-sans-bold text-xl">Google Developer Groups on Campus Crimsons</p>
-                                    <p class="text-md">Financial Report</p>
-                                    <p class="text-sm">2 hours ago</p>
-                                </div>
-                                <div class="flex justify-center items-center">
-                                    <button class="bg-[#940505] text-white hover:text-[#940505] px-8 py-2 rounded-lg hover:bg-white border hover:border-black ease-in-out duration-300">Review</button>
-                                </div>
-                            </div>
-                        </div>
+                    <div id="recentSubmissionsContainer">
+                        <div class="p-5 text-center text-gray-400">Loading recent submissions...</div>
                     </div>
                 </div>
             </div>

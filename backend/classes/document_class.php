@@ -117,4 +117,25 @@ class Document
             return null;
         }
     }
+
+    public function getRecentSubmissions($limit = 5)
+    {
+        try {
+            $query = "SELECT d.document_id, d.submitted_at, d.status,
+                      o.org_name, r.requirement_name
+                      FROM " . $this->table . " d
+                      LEFT JOIN organizations o ON d.org_id = o.org_id
+                      LEFT JOIN requirements r ON d.requirement_id = r.requirement_id
+                      WHERE d.status = 'pending'
+                      ORDER BY d.submitted_at DESC
+                      LIMIT :limit";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+            return [];
+        }
+    }
 }

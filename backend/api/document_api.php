@@ -28,6 +28,10 @@ switch ($method) {
         } elseif (isset($_GET['grouped'])) {
             $documents = $document->getDocumentsGroupedByOrg();
             echo json_encode(["status" => "success", "data" => $documents]);
+        } elseif (isset($_GET['recent'])) {
+            $limit = isset($_GET['limit']) ? intval($_GET['limit']) : 5;
+            $documents = $document->getRecentSubmissions($limit);
+            echo json_encode(["status" => "success", "data" => $documents]);
         } else {
             echo json_encode(["status" => "error", "message" => "Missing parameters"]);
         }
