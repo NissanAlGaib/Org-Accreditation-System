@@ -484,6 +484,16 @@ function closeReturnModal() {
 }
 
 async function updateStatus(documentId, status, remarks = null) {
+    // Show confirmation for verify action
+    if (status === 'verified' && !remarks) {
+        const confirmed = await showConfirm(
+            'Verify Document?',
+            'Are you sure you want to verify this document? This action confirms the document meets all requirements.'
+        );
+        
+        if (!confirmed) return;
+    }
+    
     try {
         const data = {
             document_id: documentId,
@@ -506,14 +516,20 @@ async function updateStatus(documentId, status, remarks = null) {
         const result = await response.json();
         
         if (result.status === 'success') {
-            showSuccess('Document status updated successfully');
+            if (status === 'verified') {
+                showSuccess('Document verified successfully!');
+            } else if (status === 'returned') {
+                showSuccess('Document returned for revision. The organization will be notified.');
+            } else {
+                showSuccess('Document status updated successfully');
+            }
             await loadDocuments();
         } else {
-            showError(result.message);
+            showError(result.message || 'Failed to update document status');
         }
     } catch (error) {
         console.error('Update Error:', error);
-        showError('An error occurred. Please try again.');
+        showError('An error occurred while updating the document. Please try again.');
     }
 }
 
