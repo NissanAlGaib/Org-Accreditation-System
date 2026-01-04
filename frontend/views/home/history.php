@@ -134,7 +134,8 @@ if ($_SESSION['role_id'] == 1) {
             const tbody = document.getElementById('historyTableBody');
 
             try {
-                const response = await fetch('/Org-Accreditation-System/backend/api/user_api.php', {
+                const orgId = <?php echo $_SESSION['org_id']; ?>;
+                const response = await fetch(`/Org-Accreditation-System/backend/api/organization_api.php?previous_presidents=true&org_id=${orgId}`, {
                     method: 'GET'
                 });
 
@@ -142,14 +143,9 @@ if ($_SESSION['role_id'] == 1) {
                 const result = await response.json();
 
                 if (result.status === 'success' && result.data) {
-                    // Filter for archived presidents of current organization
-                    const archivedPresidents = result.data.filter(user => 
-                        user.role_id == 2 && 
-                        user.status === 'archived' &&
-                        user.org_id == <?php echo $_SESSION['org_id']; ?>
-                    );
+                    const previousPresidents = result.data;
 
-                    if (archivedPresidents.length === 0) {
+                    if (previousPresidents.length === 0) {
                         tbody.innerHTML = `
                             <tr>
                                 <td colspan="4" class="px-6 py-8 text-center text-gray-500">
@@ -158,10 +154,14 @@ if ($_SESSION['role_id'] == 1) {
                             </tr>
                         `;
                     } else {
-                        tbody.innerHTML = archivedPresidents.map(president => {
+                        tbody.innerHTML = previousPresidents.map(president => {
                             const createdDate = president.created_at 
                                 ? new Date(president.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
                                 : 'N/A';
+
+                            const statusBadge = president.status === 'archived' 
+                                ? '<span class="bg-gray-500 text-white text-xs font-semibold px-3 py-1 rounded-full">Archived</span>'
+                                : '<span class="bg-blue-500 text-white text-xs font-semibold px-3 py-1 rounded-full">Former President</span>';
 
                             return `
                                 <tr class="hover:bg-gray-50 transition-colors duration-200">
@@ -175,9 +175,7 @@ if ($_SESSION['role_id'] == 1) {
                                         ${createdDate}
                                     </td>
                                     <td class="px-6 py-4">
-                                        <span class="bg-gray-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
-                                            Archived
-                                        </span>
+                                        ${statusBadge}
                                     </td>
                                 </tr>
                             `;

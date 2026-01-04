@@ -24,7 +24,10 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 switch ($method) {
     case 'GET':
-        if (isset($_GET['org_id'])) {
+        if (isset($_GET['previous_presidents']) && isset($_GET['org_id'])) {
+            $previous_presidents = $organization->getPreviousPresidents($_GET['org_id']);
+            echo json_encode(["status" => "success", "data" => $previous_presidents]);
+        } elseif (isset($_GET['org_id'])) {
             $org_data = $organization->getOrganizationById($_GET['org_id']);
             if ($org_data) {
                 echo json_encode(["status" => "success", "data" => $org_data]);

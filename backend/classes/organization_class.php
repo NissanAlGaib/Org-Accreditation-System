@@ -120,4 +120,29 @@ class Organization
             return false;
         }
     }
+
+    public function getPreviousPresidents($org_id)
+    {
+        try {
+            // Get all users who are presidents (role_id = 2) of this organization
+            // but exclude the current president (based on organizations.president_id)
+            $query = "SELECT u.user_id, u.first_name, u.last_name, u.email, u.status, u.created_at
+                      FROM users u
+                      WHERE u.org_id = :org_id 
+                      AND u.role_id = 2
+                      AND u.user_id != (
+                          SELECT president_id 
+                          FROM " . $this->table . " 
+                          WHERE org_id = :org_id
+                      )
+                      ORDER BY u.created_at DESC";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':org_id', $org_id);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+            return [];
+        }
+    }
 }
