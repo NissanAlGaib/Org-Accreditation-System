@@ -95,15 +95,15 @@ if (!isset($_SESSION['user_id'])) {
                             const timeAgo = getTimeAgo(new Date(sub.submitted_at));
                             return `
                                 <div class="border border-gray-400 w-full rounded-2xl mb-3">
-                                    <div class="p-5 px-8 flex justify-between">
-                                        <div>
-                                            <p class="dm-sans-bold text-xl">${escapeHtml(sub.org_name)}</p>
-                                            <p class="text-md">${escapeHtml(sub.requirement_name)}</p>
+                                    <div class="p-5 px-8 flex flex-col md:flex-row justify-between gap-4">
+                                        <div class="flex-1 min-w-0">
+                                            <p class="dm-sans-bold text-xl truncate">${escapeHtml(sub.org_name)}</p>
+                                            <p class="text-md truncate">${escapeHtml(sub.requirement_name)}</p>
                                             <p class="text-sm text-gray-500">${timeAgo}</p>
                                         </div>
-                                        <div class="flex justify-center items-center">
+                                        <div class="flex justify-center items-center flex-shrink-0">
                                             <a href="/Org-Accreditation-System/frontend/views/admin/review-documents.php?org_id=${sub.org_id}" 
-                                               class="bg-[#940505] text-white hover:text-[#940505] px-8 py-2 rounded-lg hover:bg-white border hover:border-black ease-in-out duration-300">
+                                               class="bg-[#940505] text-white hover:text-[#940505] px-8 py-2 rounded-lg hover:bg-white border hover:border-black ease-in-out duration-300 whitespace-nowrap">
                                                Review
                                             </a>
                                         </div>
@@ -185,13 +185,13 @@ if (!isset($_SESSION['user_id'])) {
                     </div>
                 </div>
             </div>
-            <div class="flex-1 w-full h-50 bg-white rounded-xl border-[0.1px] border-black shadow-xl/20">
-                <div class="p-7 w-full h-full flex flex-col">
+            <div class="w-full bg-white rounded-xl border-[0.1px] border-black shadow-xl/20">
+                <div class="p-7 w-full flex flex-col">
                     <div class="mb-5">
                         <p class="dm-sans-bold text-2xl">Recent Submissions</p>
                         <p class="">Latest document submissions requiring review</p>
                     </div>
-                    <div id="recentSubmissionsContainer">
+                    <div id="recentSubmissionsContainer" class="overflow-y-auto max-h-96">
                         <div class="p-5 text-center text-gray-400">Loading recent submissions...</div>
                     </div>
                 </div>
@@ -199,6 +199,7 @@ if (!isset($_SESSION['user_id'])) {
         </div>
     </div>
 
+    <?php include_once '../../components/modal.php'; ?>
 </body>
 
 </html>

@@ -346,13 +346,13 @@ async function deleteRequirement(requirementId) {
         const result = await response.json();
         
         if (result.status === 'success') {
-            alert('Requirement deleted successfully');
+            showSuccess('Requirement deleted successfully');
             await loadRequirements();
         } else {
-            alert('Error: ' + result.message);
+            showError(result.message);
         }
     } catch (error) {
         console.error('Delete Error:', error);
-        alert('An error occurred. Check console for details.');
+        showError('An error occurred. Please try again.');
     }
 }

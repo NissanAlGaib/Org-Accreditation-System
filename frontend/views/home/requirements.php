@@ -426,7 +426,7 @@ if ($_SESSION['role_id'] == 1) {
                 if (!file) return;
 
                 if (file.size > 10 * 1024 * 1024) {
-                    alert('File size must be less than 10MB');
+                    showWarning('File size must be less than 10MB');
                     return;
                 }
 
@@ -483,6 +483,7 @@ if ($_SESSION['role_id'] == 1) {
             return div.innerHTML;
         }
     </script>
+    <?php include_once '../../components/modal.php'; ?>
 </body>
 
 </html>

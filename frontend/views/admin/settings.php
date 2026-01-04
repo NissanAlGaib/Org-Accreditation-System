@@ -273,7 +273,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) {
         });
 
         document.getElementById('saveProfileBtn').addEventListener('click', async () => {
-            alert('Profile update functionality will be implemented.');
+            showInfo('Profile update functionality will be implemented.');
         });
 
         // Change Password
@@ -285,17 +285,17 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) {
             const confirmPassword = document.getElementById('confirmPassword').value;
             
             if (!currentPassword || !newPassword || !confirmPassword) {
-                alert('Please fill in all fields');
+                showWarning('Please fill in all fields');
                 return;
             }
             
             if (newPassword.length < 8) {
-                alert('Password must be at least 8 characters long');
+                showWarning('Password must be at least 8 characters long');
                 return;
             }
             
             if (newPassword !== confirmPassword) {
-                alert('New passwords do not match');
+                showWarning('New passwords do not match');
                 return;
             }
             
@@ -312,14 +312,14 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) {
                 const result = await response.json();
                 
                 if (result.status === 'success') {
-                    alert('Password changed successfully');
+                    showSuccess('Password changed successfully');
                     document.getElementById('passwordForm').reset();
                 } else {
-                    alert(result.message || 'Failed to change password');
+                    showError(result.message || 'Failed to change password');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('An error occurred while changing password');
+                showError('An error occurred while changing password');
             }
         });
 
@@ -385,6 +385,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) {
             document.getElementById('deletionModal').classList.add('hidden');
         }
     </script>
+    <?php include_once '../../components/modal.php'; ?>
 </body>
 
 </html>

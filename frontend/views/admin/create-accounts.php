@@ -113,7 +113,7 @@ if (!isset($_SESSION['user_id'])) {
                 </div>
             </div>
         </div>
-
+    <?php include_once '../../components/modal.php'; ?>
 </body>
 <div id="createAccountModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50 flex items-center justify-center backdrop-blur-sm">
 

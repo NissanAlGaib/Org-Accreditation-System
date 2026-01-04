@@ -202,6 +202,7 @@ $org_id = $_GET['org_id'];
     <script>
         const orgId = <?php echo json_encode($org_id); ?>;
     </script>
+    <?php include_once '../../components/modal.php'; ?>
 </body>
 
 </html>

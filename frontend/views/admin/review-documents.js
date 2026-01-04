@@ -380,7 +380,7 @@ async function viewDocument(documentId) {
     try {
         const doc = allDocuments.find(d => d.document_id === documentId);
         if (!doc) {
-            alert('Document not found');
+            showError('Document not found');
             return;
         }
         
@@ -465,7 +465,7 @@ async function viewDocument(documentId) {
         }
     } catch (error) {
         console.error('Error viewing document:', error);
-        alert('Failed to load document viewer');
+        showError('Failed to load document viewer');
     }
 }
 
@@ -506,14 +506,14 @@ async function updateStatus(documentId, status, remarks = null) {
         const result = await response.json();
         
         if (result.status === 'success') {
-            alert('Document status updated successfully');
+            showSuccess('Document status updated successfully');
             await loadDocuments();
         } else {
-            alert('Error: ' + result.message);
+            showError(result.message);
         }
     } catch (error) {
         console.error('Update Error:', error);
-        alert('An error occurred. Check console for details.');
+        showError('An error occurred. Please try again.');
     }
 }
 

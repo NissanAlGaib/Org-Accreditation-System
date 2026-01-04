@@ -98,6 +98,7 @@ if (!isset($_SESSION['user_id'])) {
             </div>
         </div>
     </div>
+    <?php include_once '../../components/modal.php'; ?>
 </body>
 
 </html>

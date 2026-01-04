@@ -183,12 +183,12 @@
                 // Reload the organizations table
                 await loadOrganizationsTable();
             } else {
-                alert("Error: " + result.message);
+                showError(result.message);
             }
 
         } catch (error) {
             console.error("Submission Error:", error);
-            alert("An error occurred. Check console for details.");
+            showError("An error occurred. Please try again.");
         } finally {
             submitBtn.disabled = false;
             submitBtn.innerText = originalBtnText;
@@ -199,9 +199,10 @@
         const passText = document.getElementById('tempPasswordDisplay').innerText;
         
         navigator.clipboard.writeText(passText).then(() => {
-            alert("Password copied to clipboard!");
+            showSuccess("Password copied to clipboard!");
         }).catch(err => {
             console.error('Failed to copy text: ', err);
+            showError("Failed to copy password");
         });
     }
 
@@ -426,10 +427,10 @@
 
     function copyPasswordToClipboard(password) {
         navigator.clipboard.writeText(password).then(() => {
-            alert("Password copied to clipboard!");
+            showSuccess("Password copied to clipboard!");
         }).catch(err => {
             console.error('Failed to copy text: ', err);
-            alert("Failed to copy password");
+            showError("Failed to copy password");
         });
     }
 
