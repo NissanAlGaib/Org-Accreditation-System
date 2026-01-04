@@ -121,7 +121,7 @@ class Document
     public function getRecentSubmissions($limit = 5)
     {
         try {
-            $query = "SELECT d.document_id, d.submitted_at, d.status,
+            $query = "SELECT d.document_id, d.org_id, d.submitted_at, d.status,
                       o.org_name, r.requirement_name
                       FROM " . $this->table . " d
                       LEFT JOIN organizations o ON d.org_id = o.org_id

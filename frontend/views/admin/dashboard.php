@@ -102,7 +102,7 @@ if (!isset($_SESSION['user_id'])) {
                                             <p class="text-sm text-gray-500">${timeAgo}</p>
                                         </div>
                                         <div class="flex justify-center items-center">
-                                            <a href="/Org-Accreditation-System/frontend/views/admin/review-documents.php?org_id=${sub.document_id}" 
+                                            <a href="/Org-Accreditation-System/frontend/views/admin/review-documents.php?org_id=${sub.org_id}" 
                                                class="bg-[#940505] text-white hover:text-[#940505] px-8 py-2 rounded-lg hover:bg-white border hover:border-black ease-in-out duration-300">
                                                Review
                                             </a>
