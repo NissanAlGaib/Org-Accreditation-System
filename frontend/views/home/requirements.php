@@ -431,9 +431,9 @@ if ($_SESSION['role_id'] == 1) {
                 }
 
                 // Show confirmation modal before upload
-                const confirmed = await showConfirm(
-                    `Upload "${file.name}" for ${requirementName}?`,
-                    'This document will be submitted for review.'
+                const confirmed = await showConfirmPromise(
+                    `Upload "${file.name}" for ${requirementName}? This document will be submitted for review.`,
+                    'Confirm Upload'
                 );
                 if (!confirmed) {
                     return;
@@ -453,6 +453,7 @@ if ($_SESSION['role_id'] == 1) {
                 try {
                     const response = await fetch('/Org-Accreditation-System/backend/api/document_upload_api.php', {
                         method: 'POST',
+                        credentials: 'same-origin', // Include session cookies
                         body: formData
                     });
                     
@@ -460,16 +461,16 @@ if ($_SESSION['role_id'] == 1) {
                     uploadStatus.remove(); // Remove loading indicator
                     
                     if (result.status === 'success') {
-                        await showSuccess('Document uploaded successfully! It will be reviewed by administrators.');
+                        showSuccess('Document uploaded successfully! It will be reviewed by administrators.');
                         loadRequirements(); // Reload requirements to update status
                         loadSubmittedDocuments();
                     } else {
-                        await showError('Upload failed: ' + result.message);
+                        showError('Upload failed: ' + result.message);
                     }
                 } catch (error) {
                     console.error('Upload error:', error);
                     uploadStatus.remove();
-                    await showError('Upload failed. Please try again.');
+                    showError('Upload failed. Please try again.');
                 }
             };
 
@@ -484,6 +485,13 @@ if ($_SESSION['role_id'] == 1) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        // Promise-based confirm dialog
+        function showConfirmPromise(message, title = 'Confirm') {
+            return new Promise((resolve) => {
+                showConfirm(message, () => resolve(true), title, () => resolve(false));
+            });
         }
     </script>
     <?php include_once '../../components/modal.php'; ?>
