@@ -27,6 +27,26 @@ switch ($method) {
         if (isset($_GET['previous_presidents']) && isset($_GET['org_id'])) {
             $previous_presidents = $organization->getPreviousPresidents($_GET['org_id']);
             echo json_encode(["status" => "success", "data" => $previous_presidents]);
+        } elseif (isset($_GET['dashboard'])) {
+            // Use the new SQL view for organization dashboard
+            $dashboard_data = $organization->getOrganizationDashboard();
+            echo json_encode(["status" => "success", "data" => $dashboard_data]);
+        } elseif (isset($_GET['active_orgs'])) {
+            // Use the new SQL view for active organizations
+            $active_orgs = $organization->getActiveOrganizations();
+            echo json_encode(["status" => "success", "data" => $active_orgs]);
+        } elseif (isset($_GET['compliance_score']) && isset($_GET['org_id']) && isset($_GET['academic_year_id'])) {
+            // Use the stored function for compliance score
+            $score = $organization->getComplianceScore($_GET['org_id'], $_GET['academic_year_id']);
+            echo json_encode(["status" => "success", "compliance_score" => $score]);
+        } elseif (isset($_GET['accreditation_status']) && isset($_GET['org_id']) && isset($_GET['academic_year_id'])) {
+            // Use the stored function for accreditation status
+            $status = $organization->getAccreditationStatus($_GET['org_id'], $_GET['academic_year_id']);
+            echo json_encode(["status" => "success", "accreditation_status" => $status]);
+        } elseif (isset($_GET['accreditation_report']) && isset($_GET['org_id']) && isset($_GET['academic_year_id'])) {
+            // Use the stored procedure for accreditation report
+            $report = $organization->generateAccreditationReport($_GET['org_id'], $_GET['academic_year_id']);
+            echo json_encode(["status" => "success", "data" => $report]);
         } elseif (isset($_GET['org_id'])) {
             $org_data = $organization->getOrganizationById($_GET['org_id']);
             if ($org_data) {

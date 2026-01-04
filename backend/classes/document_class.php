@@ -138,4 +138,95 @@ class Document
             return [];
         }
     }
+
+    // ============================================
+    // Methods using Advanced SQL Features
+    // ============================================
+
+    /**
+     * Get document review queue using the SQL view
+     * @return array Pending documents with details
+     */
+    public function getDocumentReviewQueue()
+    {
+        try {
+            $query = "SELECT * FROM vw_document_review_queue";
+            $stmt = $this->conn->prepare($query);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Bulk update document status using stored procedure
+     * @param int $org_id Organization ID
+     * @param int $requirement_id Requirement ID
+     * @param string $new_status New status
+     * @param int $reviewed_by Reviewer user ID
+     * @param string $remarks Review remarks
+     * @return int Number of documents updated
+     */
+    public function bulkUpdateDocumentStatus($org_id, $requirement_id, $new_status, $reviewed_by, $remarks = null)
+    {
+        try {
+            $query = "CALL sp_bulk_update_document_status(:org_id, :requirement_id, :new_status, :reviewed_by, :remarks)";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':org_id', $org_id, PDO::PARAM_INT);
+            $stmt->bindParam(':requirement_id', $requirement_id, PDO::PARAM_INT);
+            $stmt->bindParam(':new_status', $new_status);
+            $stmt->bindParam(':reviewed_by', $reviewed_by, PDO::PARAM_INT);
+            $stmt->bindParam(':remarks', $remarks);
+            $stmt->execute();
+            
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ? intval($result['documents_updated']) : 0;
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Get document audit log
+     * @param int $document_id Document ID (optional)
+     * @return array Audit log entries
+     */
+    public function getDocumentAuditLog($document_id = null)
+    {
+        try {
+            if ($document_id) {
+                $query = "SELECT * FROM document_audit_log WHERE document_id = :document_id ORDER BY change_timestamp DESC";
+                $stmt = $this->conn->prepare($query);
+                $stmt->bindParam(':document_id', $document_id, PDO::PARAM_INT);
+            } else {
+                $query = "SELECT * FROM document_audit_log ORDER BY change_timestamp DESC LIMIT 100";
+                $stmt = $this->conn->prepare($query);
+            }
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Get deletion attempt logs
+     * @return array Deletion attempt entries
+     */
+    public function getDeletionAttempts()
+    {
+        try {
+            $query = "SELECT * FROM document_deletion_attempts ORDER BY attempt_timestamp DESC LIMIT 100";
+            $stmt = $this->conn->prepare($query);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+            return [];
+        }
+    }
 }
