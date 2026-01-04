@@ -103,16 +103,42 @@ switch ($method) {
             }
         } elseif (!empty($data->document_id) && !empty($data->status)) {
             // Single document update
+            // Validate status
+            $allowed_statuses = ['pending', 'verified', 'returned'];
+            if (!in_array($data->status, $allowed_statuses)) {
+                echo json_encode(["status" => "error", "message" => "Invalid status value. Allowed: " . implode(", ", $allowed_statuses)]);
+                break;
+            }
+            
+            // Validate document_id
+            $document_id = filter_var($data->document_id, FILTER_VALIDATE_INT);
+            if ($document_id === false || $document_id <= 0) {
+                echo json_encode(["status" => "error", "message" => "Invalid document_id"]);
+                break;
+            }
+            
             $reviewed_by = $_SESSION['user_id'] ?? 1;
             $remarks = isset($data->remarks) ? $data->remarks : null;
             
-            if ($document->updateDocumentStatus($data->document_id, $data->status, $reviewed_by, $remarks)) {
-                echo json_encode(["status" => "success", "message" => "Document Status Updated"]);
+            error_log("Updating document - ID: $document_id, Status: {$data->status}, Reviewer: $reviewed_by");
+            
+            $result = $document->updateDocumentStatus($document_id, $data->status, $reviewed_by, $remarks);
+            
+            if ($result) {
+                echo json_encode([
+                    "status" => "success", 
+                    "message" => "Document Status Updated",
+                    "document_id" => $document_id,
+                    "new_status" => $data->status
+                ]);
             } else {
-                echo json_encode(["status" => "error", "message" => "Update Failed"]);
+                echo json_encode([
+                    "status" => "error", 
+                    "message" => "Update Failed - Please check if document exists and database is accessible"
+                ]);
             }
         } else {
-            echo json_encode(["status" => "error", "message" => "Incomplete Data"]);
+            echo json_encode(["status" => "error", "message" => "Incomplete Data - document_id and status are required"]);
         }
         break;
 

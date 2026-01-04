@@ -496,13 +496,15 @@ async function updateStatus(documentId, status, remarks = null) {
     
     try {
         const data = {
-            document_id: documentId,
+            document_id: parseInt(documentId),
             status: status
         };
         
         if (remarks) {
             data.remarks = remarks;
         }
+        
+        console.log('Sending update request:', data);
         
         const response = await fetch('/Org-Accreditation-System/backend/api/document_api.php', {
             method: 'PUT',
@@ -512,8 +514,16 @@ async function updateStatus(documentId, status, remarks = null) {
             body: JSON.stringify(data)
         });
         
-        if (!response.ok) throw new Error('Network error');
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Response error:', errorText);
+            throw new Error(`Network error: ${response.status}`);
+        }
+        
         const result = await response.json();
+        console.log('Response result:', result);
         
         if (result.status === 'success') {
             if (status === 'verified') {
@@ -525,6 +535,7 @@ async function updateStatus(documentId, status, remarks = null) {
             }
             await loadDocuments();
         } else {
+            console.error('Update failed:', result.message);
             showError(result.message || 'Failed to update document status');
         }
     } catch (error) {

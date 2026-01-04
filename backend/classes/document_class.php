@@ -68,9 +68,17 @@ class Document
             $stmt->bindParam(':reviewed_by', $reviewed_by);
             $stmt->bindParam(':remarks', $remarks);
             $stmt->bindParam(':document_id', $document_id);
-            return $stmt->execute();
+            $result = $stmt->execute();
+            
+            if (!$result) {
+                error_log("Document update failed - document_id: $document_id, status: $status, error: " . implode(", ", $stmt->errorInfo()));
+            } else {
+                error_log("Document update successful - document_id: $document_id, status: $status, rows affected: " . $stmt->rowCount());
+            }
+            
+            return $result;
         } catch (PDOException $e) {
-            error_log($e->getMessage());
+            error_log("Document update exception: " . $e->getMessage());
             return false;
         }
     }
