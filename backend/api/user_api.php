@@ -57,6 +57,7 @@ switch ($method) {
                     $_SESSION['org_id'] = $login_result['org_id'];
                     $_SESSION['full_name'] = $login_result['first_name'] . ' ' . $login_result['last_name'];
                     $_SESSION['first_name'] = $login_result['first_name'];
+                    $_SESSION['last_name'] = $login_result['last_name'];
 
                     // Check if user must change password
                     if ($login_result['must_change_password'] == 1) {

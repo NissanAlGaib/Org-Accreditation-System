@@ -2,8 +2,14 @@
 session_start();
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET,POST,PUT,DELETE");
+header("Access-Control-Allow-Methods: GET,POST,PUT,DELETE,OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
+
+// Handle preflight OPTIONS request
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
 
 include 'database.php';
 include '../classes/document_class.php';
@@ -71,30 +77,30 @@ switch ($method) {
                 $org_id = filter_var($data->org_id, FILTER_VALIDATE_INT);
                 $requirement_id = filter_var($data->requirement_id, FILTER_VALIDATE_INT);
                 $allowed_statuses = ['pending', 'verified', 'returned'];
-                
+
                 if ($org_id === false || $org_id <= 0 || $requirement_id === false || $requirement_id <= 0) {
                     echo json_encode(["status" => "error", "message" => "Invalid org_id or requirement_id"]);
                     break;
                 }
-                
+
                 if (!in_array($data->status, $allowed_statuses)) {
                     echo json_encode(["status" => "error", "message" => "Invalid status value"]);
                     break;
                 }
-                
+
                 $reviewed_by = $_SESSION['user_id'] ?? 1;
                 $remarks = isset($data->remarks) ? $data->remarks : null;
-                
+
                 $updated_count = $document->bulkUpdateDocumentStatus(
-                    $org_id, 
-                    $requirement_id, 
-                    $data->status, 
-                    $reviewed_by, 
+                    $org_id,
+                    $requirement_id,
+                    $data->status,
+                    $reviewed_by,
                     $remarks
                 );
-                
+
                 echo json_encode([
-                    "status" => "success", 
+                    "status" => "success",
                     "message" => "Bulk update completed",
                     "documents_updated" => $updated_count
                 ]);
@@ -103,37 +109,44 @@ switch ($method) {
             }
         } elseif (!empty($data->document_id) && !empty($data->status)) {
             // Single document update
+            // Check if user is logged in
+            if (!isset($_SESSION['user_id'])) {
+                error_log("Document update failed - No user_id in session");
+                echo json_encode(["status" => "error", "message" => "Unauthorized - Please log in again"]);
+                break;
+            }
+
             // Validate status
             $allowed_statuses = ['pending', 'verified', 'returned'];
             if (!in_array($data->status, $allowed_statuses)) {
                 echo json_encode(["status" => "error", "message" => "Invalid status value. Allowed: " . implode(", ", $allowed_statuses)]);
                 break;
             }
-            
+
             // Validate document_id
             $document_id = filter_var($data->document_id, FILTER_VALIDATE_INT);
             if ($document_id === false || $document_id <= 0) {
                 echo json_encode(["status" => "error", "message" => "Invalid document_id"]);
                 break;
             }
-            
-            $reviewed_by = $_SESSION['user_id'] ?? 1;
+
+            $reviewed_by = $_SESSION['user_id'];
             $remarks = isset($data->remarks) ? $data->remarks : null;
-            
-            error_log("Updating document - ID: $document_id, Status: {$data->status}, Reviewer: $reviewed_by");
-            
+
+            error_log("Updating document - ID: $document_id, Status: {$data->status}, Reviewer: $reviewed_by, Session data: " . print_r($_SESSION, true));
+
             $result = $document->updateDocumentStatus($document_id, $data->status, $reviewed_by, $remarks);
-            
+
             if ($result) {
                 echo json_encode([
-                    "status" => "success", 
+                    "status" => "success",
                     "message" => "Document Status Updated",
                     "document_id" => $document_id,
                     "new_status" => $data->status
                 ]);
             } else {
                 echo json_encode([
-                    "status" => "error", 
+                    "status" => "error",
                     "message" => "Update Failed - Please check if document exists and database is accessible"
                 ]);
             }
