@@ -61,7 +61,7 @@ class User
     public function getUsers()
     {
         try {
-            $query = "SELECT user_id, role_id, first_name, last_name, email, status FROM " . $this->table;
+            $query = "SELECT user_id, role_id, org_id, first_name, last_name, email, status, created_at FROM " . $this->table;
             $stmt = $this->conn->prepare($query);
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
