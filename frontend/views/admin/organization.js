@@ -2,12 +2,41 @@
 let currentPage = 1;
 const itemsPerPage = 10;
 let allOrganizations = [];
+let filteredOrganizations = [];
 let totalRequirements = 0;
+let searchTerm = '';
+let statusFilter = '';
 
 // Load organizations on page load
 document.addEventListener('DOMContentLoaded', async () => {
     await loadOrganizations();
 });
+
+function handleSearch() {
+    searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    applyFilters();
+}
+
+function handleFilter() {
+    statusFilter = document.getElementById('statusFilter').value;
+    applyFilters();
+}
+
+function applyFilters() {
+    filteredOrganizations = allOrganizations.filter(org => {
+        const matchesSearch = searchTerm === '' || 
+            org.org_name?.toLowerCase().includes(searchTerm) ||
+            (org.first_name + ' ' + org.last_name)?.toLowerCase().includes(searchTerm) ||
+            org.email?.toLowerCase().includes(searchTerm);
+        
+        const matchesStatus = statusFilter === '' || org.status === statusFilter;
+        
+        return matchesSearch && matchesStatus;
+    });
+    
+    currentPage = 1; // Reset to first page when filtering
+    displayPage(currentPage);
+}
 
 async function loadOrganizations() {
     const tbody = document.getElementById('organizationsTableBody');
@@ -30,6 +59,7 @@ async function loadOrganizations() {
         
         if (orgResult.status === 'success' && orgResult.data) {
             allOrganizations = orgResult.data;
+            filteredOrganizations = allOrganizations; // Initialize filtered list
             displayPage(currentPage);
             
         } else {
@@ -56,13 +86,13 @@ async function loadOrganizations() {
 
 function displayPage(page) {
     const tbody = document.getElementById('organizationsTableBody');
-    const organizations = allOrganizations;
+    const organizations = filteredOrganizations; // Use filtered list
     
     if (organizations.length === 0) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="9" class="px-6 py-8 text-center text-gray-500">
-                    No organizations registered yet
+                    ${searchTerm || statusFilter ? 'No organizations match your search criteria' : 'No organizations registered yet'}
                 </td>
             </tr>
         `;
@@ -242,7 +272,7 @@ function updatePaginationControls(totalItems) {
 }
 
 function changePage(page) {
-    const totalPages = Math.ceil(allOrganizations.length / itemsPerPage);
+    const totalPages = Math.ceil(filteredOrganizations.length / itemsPerPage); // Use filtered list
     if (page < 1 || page > totalPages) return;
     
     currentPage = page;

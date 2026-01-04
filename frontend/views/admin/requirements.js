@@ -14,11 +14,40 @@ let isEditMode = false;
 let currentPage = 1;
 const itemsPerPage = 10;
 let allRequirements = [];
+let filteredRequirements = [];
+let searchTerm = '';
+let typeFilter = '';
 
 // Load requirements on page load
 document.addEventListener('DOMContentLoaded', async () => {
     await loadRequirements();
 });
+
+function handleSearch() {
+    searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    applyFilters();
+}
+
+function handleFilter() {
+    typeFilter = document.getElementById('typeFilter').value;
+    applyFilters();
+}
+
+function applyFilters() {
+    filteredRequirements = allRequirements.filter(req => {
+        const matchesSearch = searchTerm === '' || 
+            req.requirement_name?.toLowerCase().includes(searchTerm) ||
+            req.description?.toLowerCase().includes(searchTerm) ||
+            (req.first_name + ' ' + req.last_name)?.toLowerCase().includes(searchTerm);
+        
+        const matchesType = typeFilter === '' || req.requirement_type === typeFilter;
+        
+        return matchesSearch && matchesType;
+    });
+    
+    currentPage = 1; // Reset to first page when filtering
+    displayPage(currentPage);
+}
 
 async function loadRequirements() {
     const tbody = document.getElementById('requirementsTableBody');
@@ -33,6 +62,7 @@ async function loadRequirements() {
         
         if (result.status === 'success' && result.data) {
             allRequirements = result.data;
+            filteredRequirements = allRequirements; // Initialize filtered list
             displayPage(currentPage);
             
         } else {
@@ -60,13 +90,13 @@ async function loadRequirements() {
 
 function displayPage(page) {
     const tbody = document.getElementById('requirementsTableBody');
-    const requirements = allRequirements;
+    const requirements = filteredRequirements; // Use filtered list
     
     if (requirements.length === 0) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="6" class="px-6 py-8 text-center text-gray-500">
-                    No requirements added yet
+                    ${searchTerm || typeFilter ? 'No requirements match your search criteria' : 'No requirements added yet'}
                 </td>
             </tr>
         `;
@@ -212,7 +242,7 @@ function updatePaginationControls(totalItems) {
 }
 
 function changePage(page) {
-    const totalPages = Math.ceil(allRequirements.length / itemsPerPage);
+    const totalPages = Math.ceil(filteredRequirements.length / itemsPerPage); // Use filtered list
     if (page < 1 || page > totalPages) return;
     
     currentPage = page;

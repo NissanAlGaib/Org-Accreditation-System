@@ -32,9 +32,31 @@ if (!isset($_SESSION['user_id'])) {
             </div>
             
             <div class="flex flex-col w-full min-h-60 bg-white rounded-xl border-[0.1px] border-black shadow-xl/20 p-7 gap-4">
-                <div>
-                    <p class="manrope-bold text-xl">Documents by Organization</p>
-                    <p class="text-sm">View submission status grouped by organization</p>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="manrope-bold text-xl">Documents by Organization</p>
+                        <p class="text-sm">View submission status grouped by organization</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <!-- Search Box -->
+                        <div class="relative">
+                            <input type="text" id="searchInput" placeholder="Search organizations..." 
+                                   class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#940505] focus:border-[#940505] outline-none text-sm"
+                                   oninput="handleSearch()">
+                            <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                        <!-- Progress Filter -->
+                        <select id="progressFilter" onchange="handleFilter()" 
+                                class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#940505] focus:border-[#940505] outline-none text-sm">
+                            <option value="">All Progress</option>
+                            <option value="complete">100% Complete</option>
+                            <option value="high">80-99% Complete</option>
+                            <option value="medium">40-79% Complete</option>
+                            <option value="low">0-39% Complete</option>
+                        </select>
+                    </div>
                 </div>
                 
                 <div class="overflow-x-auto bg-white rounded-lg">

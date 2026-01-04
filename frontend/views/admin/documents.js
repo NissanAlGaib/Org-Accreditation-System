@@ -2,11 +2,58 @@
 let currentPage = 1;
 const itemsPerPage = 10;
 let allDocuments = [];
+let filteredDocuments = [];
+let searchTerm = '';
+let progressFilter = '';
 
 // Load documents on page load
 document.addEventListener('DOMContentLoaded', async () => {
     await loadDocuments();
 });
+
+function handleSearch() {
+    searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    applyFilters();
+}
+
+function handleFilter() {
+    progressFilter = document.getElementById('progressFilter').value;
+    applyFilters();
+}
+
+function applyFilters() {
+    filteredDocuments = allDocuments.filter(org => {
+        const matchesSearch = searchTerm === '' || 
+            org.org_name?.toLowerCase().includes(searchTerm);
+        
+        let matchesProgress = true;
+        if (progressFilter) {
+            const verified = org.verified_count || 0;
+            const totalReqs = org.total_requirements || 1;
+            const progress = Math.round((verified / totalReqs) * 100);
+            
+            switch(progressFilter) {
+                case 'complete':
+                    matchesProgress = progress === 100;
+                    break;
+                case 'high':
+                    matchesProgress = progress >= 80 && progress < 100;
+                    break;
+                case 'medium':
+                    matchesProgress = progress >= 40 && progress < 80;
+                    break;
+                case 'low':
+                    matchesProgress = progress < 40;
+                    break;
+            }
+        }
+        
+        return matchesSearch && matchesProgress;
+    });
+    
+    currentPage = 1; // Reset to first page when filtering
+    displayPage(currentPage);
+}
 
 async function loadDocuments() {
     const tbody = document.getElementById('documentsTableBody');
@@ -21,6 +68,7 @@ async function loadDocuments() {
         
         if (result.status === 'success' && result.data) {
             allDocuments = result.data;
+            filteredDocuments = allDocuments; // Initialize filtered list
             displayPage(currentPage);
             
         } else {
@@ -47,13 +95,13 @@ async function loadDocuments() {
 
 function displayPage(page) {
     const tbody = document.getElementById('documentsTableBody');
-    const documents = allDocuments;
+    const documents = filteredDocuments; // Use filtered list
     
     if (documents.length === 0) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="7" class="px-6 py-8 text-center text-gray-500">
-                    No documents submitted yet
+                    ${searchTerm || progressFilter ? 'No documents match your search criteria' : 'No documents submitted yet'}
                 </td>
             </tr>
         `;
@@ -210,7 +258,7 @@ function updatePaginationControls(totalItems) {
 }
 
 function changePage(page) {
-    const totalPages = Math.ceil(allDocuments.length / itemsPerPage);
+    const totalPages = Math.ceil(filteredDocuments.length / itemsPerPage); // Use filtered list
     if (page < 1 || page > totalPages) return;
     
     currentPage = page;
