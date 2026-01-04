@@ -1,9 +1,14 @@
 <?php
 session_start();
+if (empty($_SESSION['user_id']) || empty($_SESSION['role_id'])) {
+    header('Location: /Org-Accreditation-System/frontend/views/auth/login.php');
+    exit;
+}
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) {
-    header("Location: /Org-Accreditation-System/frontend/views/auth/login.php");
-    exit();
+// Redirect admin to admin settings
+if ($_SESSION['role_id'] == 1) {
+    header('Location: /Org-Accreditation-System/frontend/views/admin/settings.php');
+    exit;
 }
 ?>
 <!DOCTYPE html>
@@ -12,7 +17,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Settings - Admin</title>
+    <title>Settings - CampusConnect</title>
     <link href="/Org-Accreditation-System/frontend/src/output.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,11 +28,11 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) {
 <body class="bg-[#F1ECEC] h-screen overflow-hidden">
     <?php include_once '../../components/header.php'; ?>
     <div id="main-content" class="p-10 pt-0 h-full flex gap-8">
-        <?php include_once '../../components/admin-sidebar.php'; ?>
+        <?php include_once '../../components/user-sidebar.php'; ?>
         <div class="flex flex-col w-full gap-5 overflow-y-auto pb-10">
             <div class="flex flex-col gap-2">
                 <p class="manrope-bold text-4xl">Settings</p>
-                <p class="text-md text-gray-600">Manage your account and system preferences</p>
+                <p class="text-md text-gray-600">Manage your account and preferences</p>
             </div>
 
             <!-- Account Information -->
@@ -57,7 +62,12 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) {
                     
                     <div class="md:col-span-2">
                         <label class="block text-sm font-semibold mb-2 text-gray-700">Role</label>
-                        <input type="text" value="Administrator" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100" readonly>
+                        <input type="text" value="Organization President" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100" readonly>
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold mb-2 text-gray-700">Organization</label>
+                        <input type="text" id="orgName" value="" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100" readonly>
                     </div>
                     
                     <div id="editButtons" class="md:col-span-2 hidden">
@@ -102,49 +112,29 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) {
                 </form>
             </div>
 
-            <!-- System Settings -->
+            <!-- Organization Info -->
             <div class="bg-white rounded-xl border-[0.1px] border-black shadow-xl/20 p-6">
-                <h2 class="manrope-bold text-2xl mb-6">System Settings</h2>
+                <h2 class="manrope-bold text-2xl mb-6">Organization Information</h2>
                 
-                <div class="space-y-6">
-                    <div class="flex items-center justify-between pb-4 border-b border-gray-200">
-                        <div>
-                            <p class="font-semibold text-gray-800">Database Backups</p>
-                            <p class="text-sm text-gray-600">Manage system database backups</p>
-                        </div>
-                        <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300">
-                            View Backups
-                        </button>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Organization Status</p>
+                        <span id="orgStatusBadge" class="inline-block bg-blue-500 text-white text-sm font-semibold px-4 py-2 rounded-full">Loading...</span>
                     </div>
                     
-                    <div class="flex items-center justify-between pb-4 border-b border-gray-200">
-                        <div>
-                            <p class="font-semibold text-gray-800">Audit Logs</p>
-                            <p class="text-sm text-gray-600">View document status change logs</p>
-                        </div>
-                        <button onclick="viewAuditLogs()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300">
-                            View Logs
-                        </button>
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Academic Year</p>
+                        <p id="academicYear" class="text-lg font-semibold">Loading...</p>
                     </div>
                     
-                    <div class="flex items-center justify-between pb-4 border-b border-gray-200">
-                        <div>
-                            <p class="font-semibold text-gray-800">Deletion Attempts</p>
-                            <p class="text-sm text-gray-600">Security logs for deletion attempts</p>
-                        </div>
-                        <button onclick="viewDeletionAttempts()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300">
-                            View Logs
-                        </button>
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Compliance Score</p>
+                        <p id="complianceScore" class="text-2xl font-bold text-green-600">-</p>
                     </div>
                     
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="font-semibold text-gray-800">Active Academic Year</p>
-                            <p class="text-sm text-gray-600" id="activeYearText">Loading...</p>
-                        </div>
-                        <button class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg cursor-not-allowed" disabled>
-                            Manage Years
-                        </button>
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Accreditation Status</p>
+                        <p id="accreditationStatus" class="text-lg font-semibold">Loading...</p>
                     </div>
                 </div>
             </div>
@@ -157,7 +147,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) {
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="font-semibold text-gray-800">Email Notifications</p>
-                            <p class="text-sm text-gray-600">Receive email alerts for new submissions</p>
+                            <p class="text-sm text-gray-600">Receive email alerts for document reviews</p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="emailNotifications" class="sr-only peer" checked>
@@ -167,63 +157,80 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) {
                     
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="font-semibold text-gray-800">Document Review Reminders</p>
-                            <p class="text-sm text-gray-600">Get reminded about pending documents</p>
+                            <p class="font-semibold text-gray-800">Deadline Reminders</p>
+                            <p class="text-sm text-gray-600">Get reminded about upcoming deadlines</p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="reviewReminders" class="sr-only peer" checked>
+                            <input type="checkbox" id="deadlineReminders" class="sr-only peer" checked>
                             <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#940505]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#940505]"></div>
                         </label>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Audit Log Modal -->
-    <div id="auditLogModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-xl p-8 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-2xl manrope-bold">Document Audit Logs</h3>
-                <button onclick="closeAuditModal()" class="text-gray-500 hover:text-gray-700">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-            <div id="auditLogContent" class="space-y-2">
-                Loading...
-            </div>
-        </div>
-    </div>
-
-    <!-- Deletion Attempts Modal -->
-    <div id="deletionModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-xl p-8 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-2xl manrope-bold">Deletion Attempt Logs</h3>
-                <button onclick="closeDeletionModal()" class="text-gray-500 hover:text-gray-700">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-            <div id="deletionLogContent" class="space-y-2">
-                Loading...
+            <!-- Quick Actions -->
+            <div class="bg-white rounded-xl border-[0.1px] border-black shadow-xl/20 p-6">
+                <h2 class="manrope-bold text-2xl mb-6">Quick Actions</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <a href="requirements.php" class="flex items-center justify-between p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition duration-300">
+                        <div>
+                            <p class="font-semibold text-gray-800">View Requirements</p>
+                            <p class="text-sm text-gray-600">Check all requirements</p>
+                        </div>
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
+                    
+                    <a href="my-organization.php" class="flex items-center justify-between p-4 bg-green-50 rounded-lg hover:bg-green-100 transition duration-300">
+                        <div>
+                            <p class="font-semibold text-gray-800">My Organization</p>
+                            <p class="text-sm text-gray-600">Update organization info</p>
+                        </div>
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
+                    
+                    <a href="history.php" class="flex items-center justify-between p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition duration-300">
+                        <div>
+                            <p class="font-semibold text-gray-800">Document History</p>
+                            <p class="text-sm text-gray-600">View submission history</p>
+                        </div>
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
+                    
+                    <a href="dashboard.php" class="flex items-center justify-between p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition duration-300">
+                        <div>
+                            <p class="font-semibold text-gray-800">Dashboard</p>
+                            <p class="text-sm text-gray-600">View progress overview</p>
+                        </div>
+                        <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Load user data
+        const orgId = <?php echo $_SESSION['org_id'] ?? 0; ?>;
+        const userId = <?php echo $_SESSION['user_id'] ?? 0; ?>;
+
+        // Load data on page load
         document.addEventListener('DOMContentLoaded', async () => {
             await loadUserData();
+            await loadOrganizationData();
             await loadActiveAcademicYear();
         });
 
         async function loadUserData() {
             try {
-                const response = await fetch('/Org-Accreditation-System/backend/api/user_api.php?user_id=<?php echo $_SESSION['user_id']; ?>');
+                const response = await fetch(`/Org-Accreditation-System/backend/api/user_api.php?user_id=${userId}`);
                 const result = await response.json();
                 
                 if (result.status === 'success' && result.data) {
@@ -234,6 +241,31 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) {
             }
         }
 
+        async function loadOrganizationData() {
+            try {
+                const response = await fetch(`/Org-Accreditation-System/backend/api/organization_api.php?org_id=${orgId}`);
+                const result = await response.json();
+                
+                if (result.status === 'success' && result.data) {
+                    const org = result.data;
+                    document.getElementById('orgName').value = org.org_name || '';
+                    
+                    const status = org.status || 'pending';
+                    const statusColors = {
+                        'accredited': 'bg-green-500',
+                        'active': 'bg-blue-500',
+                        'pending': 'bg-yellow-500',
+                        'inactive': 'bg-gray-500'
+                    };
+                    const statusElement = document.getElementById('orgStatusBadge');
+                    statusElement.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+                    statusElement.className = `inline-block ${statusColors[status] || 'bg-blue-500'} text-white text-sm font-semibold px-4 py-2 rounded-full`;
+                }
+            } catch (error) {
+                console.error('Error loading organization data:', error);
+            }
+        }
+
         async function loadActiveAcademicYear() {
             try {
                 const response = await fetch('/Org-Accreditation-System/backend/api/academic_year_api.php?active=1');
@@ -241,10 +273,35 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) {
                 
                 if (result.status === 'success' && result.data) {
                     const year = result.data;
-                    document.getElementById('activeYearText').textContent = `${year.year_start}-${year.year_end}`;
+                    const yearText = `${year.year_start}-${year.year_end}`;
+                    document.getElementById('academicYear').textContent = yearText;
+                    
+                    // Load compliance score
+                    await loadComplianceScore(year.academic_year_id);
                 }
             } catch (error) {
                 console.error('Error loading academic year:', error);
+            }
+        }
+
+        async function loadComplianceScore(academicYearId) {
+            try {
+                const response = await fetch(`/Org-Accreditation-System/backend/api/organization_api.php?compliance_score=1&org_id=${orgId}&academic_year_id=${academicYearId}`);
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    document.getElementById('complianceScore').textContent = `${result.compliance_score.toFixed(1)}%`;
+                }
+                
+                // Load accreditation status
+                const statusResponse = await fetch(`/Org-Accreditation-System/backend/api/organization_api.php?accreditation_status=1&org_id=${orgId}&academic_year_id=${academicYearId}`);
+                const statusResult = await statusResponse.json();
+                
+                if (statusResult.status === 'success') {
+                    document.getElementById('accreditationStatus').textContent = statusResult.accreditation_status;
+                }
+            } catch (error) {
+                console.error('Error loading compliance score:', error);
             }
         }
 
@@ -314,6 +371,9 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) {
                 if (result.status === 'success') {
                     alert('Password changed successfully');
                     document.getElementById('passwordForm').reset();
+                    if (result.redirect) {
+                        window.location.href = result.redirect;
+                    }
                 } else {
                     alert(result.message || 'Failed to change password');
                 }
@@ -322,68 +382,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) {
                 alert('An error occurred while changing password');
             }
         });
-
-        // Audit Logs
-        async function viewAuditLogs() {
-            document.getElementById('auditLogModal').classList.remove('hidden');
-            document.getElementById('auditLogContent').innerHTML = 'Loading...';
-            
-            try {
-                const response = await fetch('/Org-Accreditation-System/backend/api/document_api.php?audit_log=1');
-                const result = await response.json();
-                
-                if (result.status === 'success' && result.data && result.data.length > 0) {
-                    let html = '<div class="overflow-x-auto"><table class="w-full text-sm"><thead class="bg-gray-100"><tr><th class="px-4 py-2 text-left">Document ID</th><th class="px-4 py-2 text-left">Old Status</th><th class="px-4 py-2 text-left">New Status</th><th class="px-4 py-2 text-left">Changed By</th><th class="px-4 py-2 text-left">Timestamp</th></tr></thead><tbody>';
-                    
-                    result.data.forEach(log => {
-                        html += `<tr class="border-b"><td class="px-4 py-2">${log.document_id}</td><td class="px-4 py-2">${log.old_status}</td><td class="px-4 py-2">${log.new_status}</td><td class="px-4 py-2">${log.changed_by}</td><td class="px-4 py-2">${log.change_timestamp}</td></tr>`;
-                    });
-                    
-                    html += '</tbody></table></div>';
-                    document.getElementById('auditLogContent').innerHTML = html;
-                } else {
-                    document.getElementById('auditLogContent').innerHTML = '<p class="text-gray-500">No audit logs found</p>';
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('auditLogContent').innerHTML = '<p class="text-red-500">Error loading audit logs</p>';
-            }
-        }
-
-        function closeAuditModal() {
-            document.getElementById('auditLogModal').classList.add('hidden');
-        }
-
-        // Deletion Attempts
-        async function viewDeletionAttempts() {
-            document.getElementById('deletionModal').classList.remove('hidden');
-            document.getElementById('deletionLogContent').innerHTML = 'Loading...';
-            
-            try {
-                const response = await fetch('/Org-Accreditation-System/backend/api/document_api.php?deletion_attempts=1');
-                const result = await response.json();
-                
-                if (result.status === 'success' && result.data && result.data.length > 0) {
-                    let html = '<div class="overflow-x-auto"><table class="w-full text-sm"><thead class="bg-gray-100"><tr><th class="px-4 py-2 text-left">Document ID</th><th class="px-4 py-2 text-left">Status</th><th class="px-4 py-2 text-left">Org ID</th><th class="px-4 py-2 text-left">File Name</th><th class="px-4 py-2 text-left">Timestamp</th></tr></thead><tbody>';
-                    
-                    result.data.forEach(log => {
-                        html += `<tr class="border-b"><td class="px-4 py-2">${log.document_id}</td><td class="px-4 py-2"><span class="bg-red-100 text-red-800 px-2 py-1 rounded">${log.document_status}</span></td><td class="px-4 py-2">${log.org_id}</td><td class="px-4 py-2">${log.file_name}</td><td class="px-4 py-2">${log.attempt_timestamp}</td></tr>`;
-                    });
-                    
-                    html += '</tbody></table></div>';
-                    document.getElementById('deletionLogContent').innerHTML = html;
-                } else {
-                    document.getElementById('deletionLogContent').innerHTML = '<p class="text-gray-500">No deletion attempts found</p>';
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('deletionLogContent').innerHTML = '<p class="text-red-500">Error loading deletion logs</p>';
-            }
-        }
-
-        function closeDeletionModal() {
-            document.getElementById('deletionModal').classList.add('hidden');
-        }
     </script>
 </body>
 
