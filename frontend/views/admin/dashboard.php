@@ -5,33 +5,6 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: /Org-Accreditation-System/frontend/views/auth/login.php");
     exit();
 }
-
-$dashboard_items = [
-    [
-        'title' => 'Total Organizations',
-        'value' => 25,
-        'change' => '+5 from last year',
-        'change_color' => 'text-green-500',
-    ],
-    [
-        'title' => 'Pending Requirements',
-        'value' => 10,
-        'change' => '-2 from last month',
-        'change_color' => 'text-orange-500',
-    ],
-    [
-        'title' => 'Fully Accredited',
-        'value' => 15,
-        'change' => '44% completion rate',
-        'change_color' => 'text-green-500',
-    ],
-    [
-        'title' => 'Needs Attention',
-        'value' => 5,
-        'change' => 'Revisions requested',
-        'change_color' => 'text-red-500',
-    ]
-]
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -48,6 +21,121 @@ $dashboard_items = [
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
+    <script>
+        // Load dashboard data on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadDashboardData();
+            await loadRecentSubmissions();
+        });
+
+        async function loadDashboardData() {
+            try {
+                // Fetch organizations data
+                const orgResponse = await fetch('/Org-Accreditation-System/backend/api/organization_api.php');
+                const orgResult = await orgResponse.json();
+                
+                // Fetch requirements data
+                const reqResponse = await fetch('/Org-Accreditation-System/backend/api/requirement_api.php');
+                const reqResult = await reqResponse.json();
+                
+                if (orgResult.status === 'success' && reqResult.status === 'success') {
+                    const organizations = orgResult.data || [];
+                    const requirements = reqResult.data || [];
+                    const totalRequirements = requirements.filter(r => r.is_active == 1).length;
+                    
+                    // Calculate stats
+                    let totalOrgs = organizations.length;
+                    let fullyAccredited = 0;
+                    let needsAttention = 0;
+                    let totalPending = 0;
+                    
+                    organizations.forEach(org => {
+                        const verified = parseInt(org.verified_documents) || 0;
+                        const pending = parseInt(org.pending_documents) || 0;
+                        const returned = parseInt(org.returned_documents) || 0;
+                        
+                        totalPending += pending;
+                        
+                        if (verified >= totalRequirements && totalRequirements > 0) {
+                            fullyAccredited++;
+                        }
+                        
+                        if (returned > 0) {
+                            needsAttention++;
+                        }
+                    });
+                    
+                    const completionRate = totalOrgs > 0 ? Math.round((fullyAccredited / totalOrgs) * 100) : 0;
+                    
+                    // Update dashboard cards
+                    document.getElementById('totalOrgs').textContent = totalOrgs;
+                    document.getElementById('pendingReqs').textContent = totalPending;
+                    document.getElementById('fullyAccredited').textContent = fullyAccredited;
+                    document.getElementById('fullyAccreditedRate').textContent = `${completionRate}% completion rate`;
+                    document.getElementById('needsAttention').textContent = needsAttention;
+                }
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+
+        async function loadRecentSubmissions() {
+            try {
+                const response = await fetch('/Org-Accreditation-System/backend/api/document_api.php?recent=true&limit=5');
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    const submissions = result.data || [];
+                    const container = document.getElementById('recentSubmissionsContainer');
+                    
+                    if (submissions.length === 0) {
+                        container.innerHTML = '<div class="p-5 text-center text-gray-500">No recent submissions</div>';
+                    } else {
+                        container.innerHTML = submissions.map(sub => {
+                            const timeAgo = getTimeAgo(new Date(sub.submitted_at));
+                            return `
+                                <div class="border border-gray-400 w-full rounded-2xl mb-3">
+                                    <div class="p-5 px-8 flex justify-between">
+                                        <div>
+                                            <p class="dm-sans-bold text-xl">${escapeHtml(sub.org_name)}</p>
+                                            <p class="text-md">${escapeHtml(sub.requirement_name)}</p>
+                                            <p class="text-sm text-gray-500">${timeAgo}</p>
+                                        </div>
+                                        <div class="flex justify-center items-center">
+                                            <a href="/Org-Accreditation-System/frontend/views/admin/review-documents.php?org_id=${sub.document_id}" 
+                                               class="bg-[#940505] text-white hover:text-[#940505] px-8 py-2 rounded-lg hover:bg-white border hover:border-black ease-in-out duration-300">
+                                               Review
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading recent submissions:', error);
+                document.getElementById('recentSubmissionsContainer').innerHTML = 
+                    '<div class="p-5 text-center text-red-500">Error loading recent submissions</div>';
+            }
+        }
+
+        function getTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            
+            if (seconds < 60) return 'Just now';
+            if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
+            if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`;
+            return date.toLocaleDateString();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
 </head>
 
 <body class="bg-[#F1ECEC] h-screen">
@@ -60,17 +148,42 @@ $dashboard_items = [
                 <p class="text-md">Track all school organizations accreditation progress for S.Y. 2025-2026</p> <!--Academic Year should be fetched from db-->
             </div>
             <div class="flex gap-5">
-                <?php foreach ($dashboard_items as $item): ?>
-                    <div class="flex-1 w-full h-40 bg-white rounded-xl border-[0.1px] border-black shadow-xl/20">
-                        <div class="px-7 w-full h-full flex flex-col justify-center gap-3">
-                            <p class="dm-sans-semibold text-xl"><?php echo $item['title']; ?></p>
-                            <div>
-                                <p class="dm-sans-bold text-4xl <?php echo $item['change_color']; ?>"><?php echo $item['value']; ?></p>
-                                <p class="<?php echo $item['change_color']; ?>"><?php echo $item['change']; ?></p>
-                            </div>
+                <div class="flex-1 w-full h-40 bg-white rounded-xl border-[0.1px] border-black shadow-xl/20">
+                    <div class="px-7 w-full h-full flex flex-col justify-center gap-3">
+                        <p class="dm-sans-semibold text-xl">Total Organizations</p>
+                        <div>
+                            <p class="dm-sans-bold text-4xl text-green-500" id="totalOrgs">0</p>
+                            <p class="text-green-500">Registered organizations</p>
                         </div>
                     </div>
-                <?php endforeach; ?>
+                </div>
+                <div class="flex-1 w-full h-40 bg-white rounded-xl border-[0.1px] border-black shadow-xl/20">
+                    <div class="px-7 w-full h-full flex flex-col justify-center gap-3">
+                        <p class="dm-sans-semibold text-xl">Pending Requirements</p>
+                        <div>
+                            <p class="dm-sans-bold text-4xl text-orange-500" id="pendingReqs">0</p>
+                            <p class="text-orange-500">Documents awaiting review</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-1 w-full h-40 bg-white rounded-xl border-[0.1px] border-black shadow-xl/20">
+                    <div class="px-7 w-full h-full flex flex-col justify-center gap-3">
+                        <p class="dm-sans-semibold text-xl">Fully Accredited</p>
+                        <div>
+                            <p class="dm-sans-bold text-4xl text-green-500" id="fullyAccredited">0</p>
+                            <p class="text-green-500" id="fullyAccreditedRate">0% completion rate</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-1 w-full h-40 bg-white rounded-xl border-[0.1px] border-black shadow-xl/20">
+                    <div class="px-7 w-full h-full flex flex-col justify-center gap-3">
+                        <p class="dm-sans-semibold text-xl">Needs Attention</p>
+                        <div>
+                            <p class="dm-sans-bold text-4xl text-red-500" id="needsAttention">0</p>
+                            <p class="text-red-500">Revisions requested</p>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="flex-1 w-full h-50 bg-white rounded-xl border-[0.1px] border-black shadow-xl/20">
                 <div class="p-7 w-full h-full flex flex-col">
@@ -78,19 +191,8 @@ $dashboard_items = [
                         <p class="dm-sans-bold text-2xl">Recent Submissions</p>
                         <p class="">Latest document submissions requiring review</p>
                     </div>
-                    <div>
-                        <div class="border border-gray-400 w-full h-30 rounded-2xl">
-                            <div class="p-5 px-8 flex justify-between">
-                                <div>
-                                    <p class="dm-sans-bold text-xl">Google Developer Groups on Campus Crimsons</p>
-                                    <p class="text-md">Financial Report</p>
-                                    <p class="text-sm">2 hours ago</p>
-                                </div>
-                                <div class="flex justify-center items-center">
-                                    <button class="bg-[#940505] text-white hover:text-[#940505] px-8 py-2 rounded-lg hover:bg-white border hover:border-black ease-in-out duration-300">Review</button>
-                                </div>
-                            </div>
-                        </div>
+                    <div id="recentSubmissionsContainer">
+                        <div class="p-5 text-center text-gray-400">Loading recent submissions...</div>
                     </div>
                 </div>
             </div>

@@ -54,20 +54,44 @@ switch ($method) {
                     session_regenerate_id(true);
                     $_SESSION['user_id'] = $login_result['user_id'];
                     $_SESSION['role_id'] = $login_result['role_id'];
+                    $_SESSION['org_id'] = $login_result['org_id'];
                     $_SESSION['full_name'] = $login_result['first_name'] . ' ' . $login_result['last_name'];
+                    $_SESSION['first_name'] = $login_result['first_name'];
 
-                    $role = $login_result['role_id'];
-                    $redirect = '../home/dashboard.php';
-                    if ($role == 1) {
-                        $redirect = '../admin/dashboard.php';
+                    // Check if user must change password
+                    if ($login_result['must_change_password'] == 1) {
+                        echo json_encode(["status" => "success", "message" => "Login Successful", "redirect" => "../auth/change-password.php", "must_change_password" => true]);
+                    } else {
+                        $role = $login_result['role_id'];
+                        $redirect = '../home/dashboard.php';
+                        if ($role == 1) {
+                            $redirect = '../admin/dashboard.php';
+                        }
+                        echo json_encode(["status" => "success", "message" => "Login Successful", "redirect" => $redirect]);
                     }
-
-                    echo json_encode(["status" => "success", "message" => "Login Successful", "redirect" => $redirect]);
                 } else {
                     echo json_encode(["status" => "error", "message" => 'Invalid Email or Password']);
                 }
             } else {
                 echo json_encode(["status" => "error", "message" => "Email and Password Required"]);
+            }
+        } elseif ($action === 'change_password') {
+            if (!empty($data->new_password) && !empty($_SESSION['user_id'])) {
+                $user_id = $_SESSION['user_id'];
+                $new_password = $data->new_password;
+                
+                if ($user->changePassword($user_id, $new_password)) {
+                    $role = $_SESSION['role_id'];
+                    $redirect = '../home/dashboard.php';
+                    if ($role == 1) {
+                        $redirect = '../admin/dashboard.php';
+                    }
+                    echo json_encode(["status" => "success", "message" => "Password Changed Successfully", "redirect" => $redirect]);
+                } else {
+                    echo json_encode(["status" => "error", "message" => "Password Change Failed"]);
+                }
+            } else {
+                echo json_encode(["status" => "error", "message" => "New Password Required"]);
             }
         }
 

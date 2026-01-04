@@ -9,22 +9,10 @@ $menu_items = [
         'icon-active' => $base_path . 'dashboard-active.png'
     ],
     [
-        'label' => 'Organizations',
-        'link'  => 'organization.php',
+        'label' => 'My Organization',
+        'link'  => 'my-organization.php',
         'icon'   => $base_path . 'my-org.png',
         'icon-active' => $base_path . 'my-org-active.png'
-    ],
-    [
-        'label' => 'Documents',
-        'link'  => 'documents.php',
-        'icon'   => $base_path . 'requirements.png',
-        'icon-active' => $base_path . 'requirements-active.png'
-    ],
-    [
-        'label' => 'Create Accounts',
-        'link'  => 'create-accounts.php',
-        'icon'   => $base_path . 'create-account.png',
-        'icon-active' => $base_path . 'create-account-active.png'
     ],
     [
         'label' => 'Requirements',
@@ -34,15 +22,9 @@ $menu_items = [
     ],
     [
         'label' => 'History',
-        'link'  => 'archive.php',
+        'link'  => 'history.php',
         'icon'   => $base_path . 'archive.png',
         'icon-active' => $base_path . 'archive-active.png'
-    ],
-    [
-        'label' => 'Settings',
-        'link'  => 'settings.php',
-        'icon'   => $base_path . 'settings.png',
-        'icon-active' => $base_path . 'settings-active.png'
     ],
 ];
 ?>
