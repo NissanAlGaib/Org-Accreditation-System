@@ -38,6 +38,17 @@ if (!isset($_SESSION['user_id'])) {
                         <p class="text-sm">View submission status grouped by organization</p>
                     </div>
                     <div class="flex gap-3">
+                        <!-- Items per page selector -->
+                        <div class="flex items-center gap-2">
+                            <label class="text-sm text-gray-600">Show:</label>
+                            <select id="itemsPerPageSelect" onchange="handleItemsPerPageChange()" 
+                                    class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#940505] focus:border-[#940505] outline-none text-sm">
+                                <option value="10" selected>10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
                         <!-- Search Box -->
                         <div class="relative">
                             <input type="text" id="searchInput" placeholder="Search organizations..." 

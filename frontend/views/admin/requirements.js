@@ -12,7 +12,7 @@ let isEditMode = false;
 
 // Pagination state
 let currentPage = 1;
-const itemsPerPage = 10;
+let itemsPerPage = 10;
 let allRequirements = [];
 let filteredRequirements = [];
 let searchTerm = '';
@@ -22,6 +22,12 @@ let typeFilter = '';
 document.addEventListener('DOMContentLoaded', async () => {
     await loadRequirements();
 });
+
+function handleItemsPerPageChange() {
+    itemsPerPage = parseInt(document.getElementById('itemsPerPageSelect').value);
+    currentPage = 1; // Reset to first page
+    displayPage(currentPage);
+}
 
 function handleSearch() {
     searchTerm = document.getElementById('searchInput').value.toLowerCase();
@@ -166,13 +172,11 @@ function updatePaginationControls(totalItems) {
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     const paginationContainer = document.getElementById('paginationControls');
     
-    if (!paginationContainer || totalPages <= 1) {
-        if (paginationContainer) paginationContainer.innerHTML = '';
-        return;
-    }
+    if (!paginationContainer) return;
     
+    // Always show pagination controls
     let paginationHTML = `
-        <div class="flex items-center justify-between mt-6">
+        <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
             <div class="text-sm text-gray-600">
                 Showing ${totalItems > 0 ? ((currentPage - 1) * itemsPerPage + 1) : 0} to ${Math.min(currentPage * itemsPerPage, totalItems)} of ${totalItems} requirements
             </div>
@@ -182,53 +186,55 @@ function updatePaginationControls(totalItems) {
     // Previous button
     paginationHTML += `
         <button onclick="changePage(${currentPage - 1})" 
-                ${currentPage === 1 ? 'disabled' : ''}
-                class="px-4 py-2 text-sm font-medium rounded-lg transition-colors ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}">
+                ${currentPage === 1 || totalPages === 0 ? 'disabled' : ''}
+                class="px-4 py-2 text-sm font-medium rounded-lg transition-colors ${currentPage === 1 || totalPages === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}">
             Previous
         </button>
     `;
     
-    // Page numbers
-    const maxVisiblePages = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-    
-    if (endPage - startPage < maxVisiblePages - 1) {
-        startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
-    
-    if (startPage > 1) {
-        paginationHTML += `
-            <button onclick="changePage(1)" class="px-4 py-2 text-sm font-medium rounded-lg bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors">1</button>
-        `;
-        if (startPage > 2) {
-            paginationHTML += `<span class="px-3 py-2 text-gray-500">...</span>`;
+    // Page numbers - only show if there are pages
+    if (totalPages > 0) {
+        const maxVisiblePages = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+        
+        if (endPage - startPage < maxVisiblePages - 1) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
         }
-    }
-    
-    for (let i = startPage; i <= endPage; i++) {
-        paginationHTML += `
-            <button onclick="changePage(${i})" 
-                    class="px-4 py-2 text-sm font-medium rounded-lg transition-colors ${i === currentPage ? 'bg-[#940505] text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}">
-                ${i}
-            </button>
-        `;
-    }
-    
-    if (endPage < totalPages) {
-        if (endPage < totalPages - 1) {
-            paginationHTML += `<span class="px-3 py-2 text-gray-500">...</span>`;
+        
+        if (startPage > 1) {
+            paginationHTML += `
+                <button onclick="changePage(1)" class="px-4 py-2 text-sm font-medium rounded-lg bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors">1</button>
+            `;
+            if (startPage > 2) {
+                paginationHTML += `<span class="px-3 py-2 text-gray-500">...</span>`;
+            }
         }
-        paginationHTML += `
-            <button onclick="changePage(${totalPages})" class="px-4 py-2 text-sm font-medium rounded-lg bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors">${totalPages}</button>
-        `;
+        
+        for (let i = startPage; i <= endPage; i++) {
+            paginationHTML += `
+                <button onclick="changePage(${i})" 
+                        class="px-4 py-2 text-sm font-medium rounded-lg transition-colors ${i === currentPage ? 'bg-[#940505] text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}">
+                    ${i}
+                </button>
+            `;
+        }
+        
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                paginationHTML += `<span class="px-3 py-2 text-gray-500">...</span>`;
+            }
+            paginationHTML += `
+                <button onclick="changePage(${totalPages})" class="px-4 py-2 text-sm font-medium rounded-lg bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition-colors">${totalPages}</button>
+            `;
+        }
     }
     
     // Next button
     paginationHTML += `
         <button onclick="changePage(${currentPage + 1})" 
-                ${currentPage === totalPages ? 'disabled' : ''}
-                class="px-4 py-2 text-sm font-medium rounded-lg transition-colors ${currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}">
+                ${currentPage === totalPages || totalPages === 0 ? 'disabled' : ''}
+                class="px-4 py-2 text-sm font-medium rounded-lg transition-colors ${currentPage === totalPages || totalPages === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}">
             Next
         </button>
     `;
