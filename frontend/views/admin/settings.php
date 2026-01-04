@@ -20,11 +20,11 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) {
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
 </head>
 
-<body class="bg-[#F1ECEC] h-screen overflow-hidden">
+<body class="bg-[#F1ECEC] h-screen">
     <?php include_once '../../components/header.php'; ?>
     <div id="main-content" class="p-10 pt-0 h-full flex gap-8">
         <?php include_once '../../components/admin-sidebar.php'; ?>
-        <div class="flex flex-col w-full gap-5 overflow-y-auto pb-10">
+        <div class="flex flex-col w-full gap-5">
             <div class="flex flex-col gap-2">
                 <p class="manrope-bold text-4xl">Settings</p>
                 <p class="text-md text-gray-600">Manage your account and system preferences</p>
